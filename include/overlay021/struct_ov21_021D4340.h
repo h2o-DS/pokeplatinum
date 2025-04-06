@@ -6,7 +6,7 @@
 #include "overlay021/struct_ov21_021E68F4.h"
 
 typedef struct {
-    UnkStruct_ov21_021E68F4 *unk_00;
+    PokedexScreenManager *unk_00;
     UnkStruct_ov21_021D3FE0 *unk_04;
     UnkStruct_ov21_021D423C *unk_08;
 } UnkStruct_ov21_021D4340;

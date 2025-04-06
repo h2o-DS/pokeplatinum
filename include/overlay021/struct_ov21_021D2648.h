@@ -2,14 +2,14 @@
 #define POKEPLATINUM_STRUCT_OV21_021D2648_H
 
 typedef struct {
-    int unk_00;
-    int unk_04;
-    int unk_08;
-    int unk_0C;
-    int unk_10;
-    int unk_14;
-    int unk_18;
-    int unk_1C;
-} UnkStruct_ov21_021D2648;
+    int currentX;
+    int currentY;
+    int startX;
+    int startY;
+    int deltaX;
+    int deltaY;
+    int step;
+    int numSteps;
+} CursorTransformation;
 
 #endif // POKEPLATINUM_STRUCT_OV21_021D2648_H

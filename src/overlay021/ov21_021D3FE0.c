@@ -1,8 +1,7 @@
-#include "overlay021/ov21_021D3FE0.h"
-
 #include <nitro.h>
 #include <string.h>
 
+#include "overlay021/PokedexUpdater_InitUpdater.h"
 #include "overlay021/funcptr_ov21_021D41EC.h"
 #include "overlay021/funcptr_ov21_021D420C.h"
 #include "overlay021/struct_ov21_021D4008.h"
@@ -12,93 +11,93 @@
 #include "heap.h"
 
 typedef struct UnkStruct_ov21_021D3FE0_t {
-    void *unk_00;
-    void *unk_04;
-    int unk_08;
-    UnkStruct_ov21_021E6A68 unk_0C;
-    UnkFuncPtr_ov21_021D41EC unk_20[3];
-    UnkStruct_ov21_021E6B20 unk_2C;
-    UnkFuncPtr_ov21_021D420C unk_38[3];
-    int heapID;
-} UnkStruct_ov21_021D3FE0;
+    void *pageData;
+    void *pageGraphics;
+    int state;
+    PokedexDataManager dataMan;
+    PokedexDataFunction dataFunc[3];
+    PokedexGraphicsManager graphicsMan;
+    PokedexGraphicsFunction graphicsFunc[3];
+    enum HeapId heapID;
+} PokedexUpdater;
 
-static void ov21_021D41D8(UnkStruct_ov21_021E6A68 *param0);
-static void ov21_021D41E4(UnkStruct_ov21_021E6B20 *param0);
-static int ov21_021D41EC(UnkFuncPtr_ov21_021D41EC param0, UnkStruct_ov21_021E6A68 *param1, void *param2);
-static int ov21_021D420C(UnkFuncPtr_ov21_021D420C param0, void *param1, UnkStruct_ov21_021E6B20 *param2, const void *param3, const UnkStruct_ov21_021E6A68 *param4);
+static void ResetPageMan(PokedexDataManager *dataMan);
+static void ResetGraphicsMan(PokedexGraphicsManager *graphicsMan);
+static int RunDataFunction(PokedexDataFunction dataFunc, PokedexDataManager *dataMan, void *param2);
+static int RunGraphicsFunction(PokedexGraphicsFunction graphicsFunc, void *param1, PokedexGraphicsManager *graphicsMan, const void *param3, const PokedexDataManager *dataMan);
 
-UnkStruct_ov21_021D3FE0 *ov21_021D3FE0(enum HeapId heapID)
+PokedexUpdater *PokedexUpdater_InitUpdater(enum HeapId heapID)
 {
-    UnkStruct_ov21_021D3FE0 *v0;
+    PokedexUpdater *pokedexUpdater;
 
-    v0 = Heap_AllocFromHeap(heapID, sizeof(UnkStruct_ov21_021D3FE0));
+    pokedexUpdater = Heap_AllocFromHeap(heapID, sizeof(PokedexUpdater));
 
-    GF_ASSERT(v0);
-    memset(v0, 0, sizeof(UnkStruct_ov21_021D3FE0));
+    GF_ASSERT(pokedexUpdater);
+    memset(pokedexUpdater, 0, sizeof(PokedexUpdater));
 
-    v0->unk_08 = 5;
-    v0->heapID = heapID;
+    pokedexUpdater->state = 5;
+    pokedexUpdater->heapID = heapID;
 
-    return v0;
+    return pokedexUpdater;
 }
 
-void ov21_021D4008(UnkStruct_ov21_021D3FE0 *param0, const UnkStruct_ov21_021D4008 *param1)
+void PokedexUpdater_PopulateUpdater(PokedexUpdater *pokedexUpdater, const UnkStruct_ov21_021D4008 *param1)
 {
-    GF_ASSERT(param0);
+    GF_ASSERT(pokedexUpdater);
     GF_ASSERT(param1);
-    GF_ASSERT(ov21_021D41A8(param0));
+    GF_ASSERT(ov21_021D41A8(pokedexUpdater));
 
-    param0->unk_00 = param1->unk_00;
-    param0->unk_04 = param1->unk_04;
-    param0->unk_08 = 0;
+    pokedexUpdater->pageData = param1->unk_00;
+    pokedexUpdater->pageGraphics = param1->unk_04;
+    pokedexUpdater->state = 0;
 
-    ov21_021D41D8(&param0->unk_0C);
-    param0->unk_0C.heapID = param0->heapID;
+    ResetPageMan(&pokedexUpdater->dataMan);
+    pokedexUpdater->dataMan.heapID = pokedexUpdater->heapID;
 
-    ov21_021D41E4(&param0->unk_2C);
-    param0->unk_2C.heapID = param0->heapID;
+    ResetGraphicsMan(&pokedexUpdater->graphicsMan);
+    pokedexUpdater->graphicsMan.heapID = pokedexUpdater->heapID;
 
-    param0->unk_20[0] = param1->unk_08[0];
-    param0->unk_20[1] = param1->unk_08[1];
-    param0->unk_20[2] = param1->unk_08[2];
-    param0->unk_38[0] = param1->unk_0C[0];
-    param0->unk_38[1] = param1->unk_0C[1];
-    param0->unk_38[2] = param1->unk_0C[2];
+    pokedexUpdater->dataFunc[0] = param1->unk_08[0];
+    pokedexUpdater->dataFunc[1] = param1->unk_08[1];
+    pokedexUpdater->dataFunc[2] = param1->unk_08[2];
+    pokedexUpdater->graphicsFunc[0] = param1->unk_0C[0];
+    pokedexUpdater->graphicsFunc[1] = param1->unk_0C[1];
+    pokedexUpdater->graphicsFunc[2] = param1->unk_0C[2];
 }
 
-int ov21_021D4078(UnkStruct_ov21_021D3FE0 *param0)
+int PokedexUpdater_UpdateData(PokedexUpdater *pokedexUpdater)
 {
     int v0;
 
-    GF_ASSERT(param0);
+    GF_ASSERT(pokedexUpdater);
 
-    switch (param0->unk_08) {
+    switch (pokedexUpdater->state) {
     case 0:
-        v0 = ov21_021D41EC(param0->unk_20[0], &param0->unk_0C, param0->unk_00);
+        v0 = RunDataFunction(pokedexUpdater->dataFunc[0], &pokedexUpdater->dataMan, pokedexUpdater->pageData);
 
         if (v0 == 1) {
-            param0->unk_08++;
-            param0->unk_0C.unk_00 = 0;
+            pokedexUpdater->state++;
+            pokedexUpdater->dataMan.state = 0;
         }
         break;
     case 1:
         break;
     case 2:
-        v0 = ov21_021D41EC(param0->unk_20[1], &param0->unk_0C, param0->unk_00);
+        v0 = RunDataFunction(pokedexUpdater->dataFunc[1], &pokedexUpdater->dataMan, pokedexUpdater->pageData);
 
         if (v0 == 1) {
-            param0->unk_08++;
-            param0->unk_0C.unk_00 = 0;
-            param0->unk_2C.unk_00 = 0;
+            pokedexUpdater->state++;
+            pokedexUpdater->dataMan.state = 0;
+            pokedexUpdater->graphicsMan.state = 0;
         }
         break;
     case 3:
         break;
     case 4:
-        v0 = ov21_021D41EC(param0->unk_20[2], &param0->unk_0C, param0->unk_00);
+        v0 = RunDataFunction(pokedexUpdater->dataFunc[2], &pokedexUpdater->dataMan, pokedexUpdater->pageData);
 
         if (v0 == 1) {
-            param0->unk_08++;
+            pokedexUpdater->state++;
         }
         break;
     case 5:
@@ -111,31 +110,31 @@ int ov21_021D4078(UnkStruct_ov21_021D3FE0 *param0)
     return 0;
 }
 
-int ov21_021D4100(UnkStruct_ov21_021D3FE0 *param0)
+int PokedexUpdater_UpdateGraphics(PokedexUpdater *pokedexUpdater)
 {
     int v0;
 
-    GF_ASSERT(param0);
+    GF_ASSERT(pokedexUpdater);
 
-    switch (param0->unk_08) {
+    switch (pokedexUpdater->state) {
     case 0:
         break;
     case 1:
-        v0 = ov21_021D420C(param0->unk_38[0], param0->unk_04, &param0->unk_2C, param0->unk_00, &param0->unk_0C);
+        v0 = RunGraphicsFunction(pokedexUpdater->graphicsFunc[0], pokedexUpdater->pageGraphics, &pokedexUpdater->graphicsMan, pokedexUpdater->pageData, &pokedexUpdater->dataMan);
 
         if (v0 == 1) {
-            param0->unk_08++;
-            param0->unk_2C.unk_00 = 0;
+            pokedexUpdater->state++;
+            pokedexUpdater->graphicsMan.state = 0;
         }
         break;
     case 2:
-        ov21_021D420C(param0->unk_38[1], param0->unk_04, &param0->unk_2C, param0->unk_00, &param0->unk_0C);
+        RunGraphicsFunction(pokedexUpdater->graphicsFunc[1], pokedexUpdater->pageGraphics, &pokedexUpdater->graphicsMan, pokedexUpdater->pageData, &pokedexUpdater->dataMan);
         break;
     case 3:
-        v0 = ov21_021D420C(param0->unk_38[2], param0->unk_04, &param0->unk_2C, param0->unk_00, &param0->unk_0C);
+        v0 = RunGraphicsFunction(pokedexUpdater->graphicsFunc[2], pokedexUpdater->pageGraphics, &pokedexUpdater->graphicsMan, pokedexUpdater->pageData, &pokedexUpdater->dataMan);
 
         if (v0 == 1) {
-            param0->unk_08++;
+            pokedexUpdater->state++;
         }
         break;
     case 4:
@@ -150,73 +149,73 @@ int ov21_021D4100(UnkStruct_ov21_021D3FE0 *param0)
     return 0;
 }
 
-void ov21_021D4194(UnkStruct_ov21_021D3FE0 *param0, BOOL param1)
+void PokedexUpdater_SetDataUnchanged(PokedexUpdater *pokedexUpdater, BOOL unchanged)
 {
-    param0->unk_0C.unk_10 = param1;
+    pokedexUpdater->dataMan.unchanged = unchanged;
 }
 
-void ov21_021D4198(UnkStruct_ov21_021D3FE0 *param0)
+void PokedexUpdater_DataExit(PokedexUpdater *pokedexUpdater)
 {
-    GF_ASSERT(param0);
-    param0->unk_0C.unk_0C = 1;
+    GF_ASSERT(pokedexUpdater);
+    pokedexUpdater->dataMan.exit = TRUE;
 }
 
-BOOL ov21_021D41A8(UnkStruct_ov21_021D3FE0 *param0)
+BOOL ov21_021D41A8(PokedexUpdater *pokedexUpdater)
 {
-    GF_ASSERT(param0);
+    GF_ASSERT(pokedexUpdater);
 
-    if (param0->unk_08 == 5) {
+    if (pokedexUpdater->state == 5) {
         return 1;
     }
 
     return 0;
 }
 
-BOOL ov21_021D41C0(UnkStruct_ov21_021D3FE0 *param0)
+BOOL ov21_021D41C0(PokedexUpdater *pokedexUpdater)
 {
-    GF_ASSERT(param0);
+    GF_ASSERT(pokedexUpdater);
 
-    if (param0->unk_08 == 2) {
+    if (pokedexUpdater->state == 2) {
         return 1;
     }
 
     return 0;
 }
 
-static void ov21_021D41D8(UnkStruct_ov21_021E6A68 *param0)
+static void ResetPageMan(PokedexDataManager *dataMan)
 {
-    param0->unk_00 = 0;
-    param0->unk_08 = NULL;
-    param0->unk_0C = 0;
+    dataMan->state = 0;
+    dataMan->pageData = NULL;
+    dataMan->exit = FALSE;
 }
 
-static void ov21_021D41E4(UnkStruct_ov21_021E6B20 *param0)
+static void ResetGraphicsMan(PokedexGraphicsManager *graphicsMan)
 {
-    param0->unk_00 = 0;
-    param0->unk_08 = NULL;
+    graphicsMan->state = 0;
+    graphicsMan->pageGraphics = NULL;
 }
 
-static int ov21_021D41EC(UnkFuncPtr_ov21_021D41EC param0, UnkStruct_ov21_021E6A68 *param1, void *param2)
+static int RunDataFunction(PokedexDataFunction dataFunc, PokedexDataManager *dataMan, void *param2)
 {
     int v0;
 
-    GF_ASSERT(param0);
-    GF_ASSERT(param1);
+    GF_ASSERT(dataFunc);
+    GF_ASSERT(dataMan);
 
-    v0 = param0(param1, param2);
+    v0 = dataFunc(dataMan, param2);
 
     return v0;
 }
 
-static int ov21_021D420C(UnkFuncPtr_ov21_021D420C param0, void *param1, UnkStruct_ov21_021E6B20 *param2, const void *param3, const UnkStruct_ov21_021E6A68 *param4)
+static int RunGraphicsFunction(PokedexGraphicsFunction graphicsFunc, void *param1, PokedexGraphicsManager *graphicsMan, const void *param3, const PokedexDataManager *dataMan)
 {
     int v0;
 
-    GF_ASSERT(param0);
-    GF_ASSERT(param2);
-    GF_ASSERT(param4);
+    GF_ASSERT(graphicsFunc);
+    GF_ASSERT(graphicsMan);
+    GF_ASSERT(dataMan);
 
-    v0 = param0(param1, param2, param3, param4);
+    v0 = graphicsFunc(param1, graphicsMan, param3, dataMan);
 
     return v0;
 }

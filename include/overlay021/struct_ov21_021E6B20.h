@@ -4,9 +4,9 @@
 #include "heap.h"
 
 typedef struct {
-    int unk_00;
+    int state;
     enum HeapId heapID;
-    void *unk_08;
-} UnkStruct_ov21_021E6B20;
+    void *pageGraphics;
+} PokedexGraphicsManager;
 
 #endif // POKEPLATINUM_STRUCT_OV21_021E6B20_H

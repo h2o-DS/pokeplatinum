@@ -6,14 +6,22 @@
 
 #include "heap.h"
 
-void ov21_021E29DC(UnkStruct_ov21_021E68F4 *param0, PokedexApp *param1, enum HeapId heapID);
-void ov21_021E2A3C(UnkStruct_ov21_021E68F4 *param0);
-BOOL ov21_021E2A54(const UnkStruct_ov21_021E68F4 *param0);
-void ov21_021E332C(UnkStruct_ov21_021E68F4 *param0, PokedexApp *param1, enum HeapId heapID);
-void ov21_021E338C(UnkStruct_ov21_021E68F4 *param0);
-BOOL ov21_021E33A4(const UnkStruct_ov21_021E68F4 *param0);
-BOOL ov21_021E33AC(const UnkStruct_ov21_021E68F4 *param0);
-void ov21_021E33B4(UnkStruct_ov21_021E68F4 *param0, BOOL param1);
-BOOL ov21_021E33BC(const UnkStruct_ov21_021E68F4 *param0);
+enum PokedexButtonStatus {
+    POKEDEX_BUTTON_DEFAULT = 0,
+    POKEDEX_BUTTON_ACTIVE,
+    POKEDEX_BUTTON_PRESSED,
+    POKEDEX_BUTTON_DEACTIVE,
+    POKEDEX_BUTTON_INIT
+};
+
+void PokedexEntry_BannerTransitions(PokedexScreenManager *param0, PokedexApp *param1, enum HeapId heapID);
+void PokedexEntry_FreeData(PokedexScreenManager *param0);
+BOOL ov21_021E2A54(const PokedexScreenManager *param0);
+void PokedexEntry_PanelTransitions(PokedexScreenManager *param0, PokedexApp *param1, enum HeapId heapID);
+void PokedexEntry_FreeTransitionData(PokedexScreenManager *param0);
+BOOL ov21_021E33A4(const PokedexScreenManager *param0);
+BOOL ov21_021E33AC(const PokedexScreenManager *param0);
+void ov21_021E33B4(PokedexScreenManager *param0, BOOL param1);
+BOOL ov21_021E33BC(const PokedexScreenManager *param0);
 
 #endif // POKEPLATINUM_OV21_021E29DC_H

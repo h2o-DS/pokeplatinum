@@ -13,12 +13,12 @@
 #include "overlay021/ov21_021D1FA4.h"
 #include "overlay021/ov21_021D4C0C.h"
 #include "overlay021/ov21_021DE668.h"
+#include "overlay021/pokedex_display_box.h"
 #include "overlay021/pokedex_main.h"
+#include "overlay021/pokedex_text_manager.h"
 #include "overlay021/struct_ov21_021D1FA4.h"
 #include "overlay021/struct_ov21_021D22F8.h"
 #include "overlay021/struct_ov21_021D4C0C_decl.h"
-#include "overlay021/struct_ov21_021D4CA0.h"
-#include "overlay021/struct_ov21_021D4CB8.h"
 #include "overlay021/struct_ov21_021E8E0C.h"
 
 #include "bg_window.h"
@@ -52,7 +52,7 @@ typedef struct {
 
 typedef struct {
     Sprite *unk_00;
-    UnkStruct_ov21_021D4CA0 *unk_04;
+    PokedexTextManager *unk_04;
 } UnkStruct_ov21_021E95B0;
 
 typedef struct {
@@ -398,20 +398,20 @@ static void ov21_021E9228(SpriteResourceCollection **param0)
 
 static void ov21_021E9240(UnkStruct_ov21_021D22F8 *param0, UnkStruct_ov21_021D4C0C *param1, int param2, int param3, int param4)
 {
-    UnkStruct_ov21_021D4CB8 v0;
+    PokedexDisplayBox v0;
     Window *v1;
     SpriteResource *v2;
 
     v2 = param0->unk_0C[1];
 
     v0.unk_00 = param1;
-    v0.unk_08 = SpriteTransfer_GetPaletteProxy(v2, NULL);
-    v0.unk_0C = param0->unk_00;
-    v0.unk_10 = -(128 / 2);
-    v0.unk_14 = -(16 / 2);
+    v0.paletteProxy = SpriteTransfer_GetPaletteProxy(v2, NULL);
+    v0.sprite = param0->unk_00;
+    v0.x = -(128 / 2);
+    v0.y = -(16 / 2);
     v0.unk_18 = 2;
     v0.unk_1C = 0;
-    v0.unk_20 = NNS_G2D_VRAM_TYPE_2DMAIN;
+    v0.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
     v0.heapID = param2;
 
     if (param4 == 0) {
@@ -420,10 +420,10 @@ static void ov21_021E9240(UnkStruct_ov21_021D22F8 *param0, UnkStruct_ov21_021D4C
         v1 = PokedexMain_DisplayNameNumberNational(param1, param2, param3);
     }
 
-    v0.unk_04 = v1;
+    v0.window = v1;
 
     ov21_021D22F8(param0, &v0, 0, param3, param4);
-    ov21_021D4DA0(v1);
+    Pokedex_FreeWindow(v1);
 }
 
 static void ov21_021E92B0(UnkStruct_ov21_021D22F8 *param0)
@@ -551,24 +551,24 @@ static void ov21_021E9554(UnkStruct_ov21_021E95B0 *param0)
 static void ov21_021E9560(UnkStruct_ov21_021E95B0 *param0, UnkStruct_ov21_021D4C0C *param1, int param2, int param3, SpriteResource *param4)
 {
     Window *v0;
-    UnkStruct_ov21_021D4CB8 v1;
+    PokedexDisplayBox v1;
 
     v0 = ov21_021DF30C(param1, param3, param2);
 
     v1.unk_00 = param1;
-    v1.unk_08 = SpriteTransfer_GetPaletteProxy(param4, NULL);
-    v1.unk_0C = param0->unk_00;
-    v1.unk_10 = -78;
-    v1.unk_14 = -8;
+    v1.paletteProxy = SpriteTransfer_GetPaletteProxy(param4, NULL);
+    v1.sprite = param0->unk_00;
+    v1.x = -78;
+    v1.y = -8;
     v1.unk_18 = 2;
     v1.unk_1C = 32 - 1;
-    v1.unk_20 = NNS_G2D_VRAM_TYPE_2DMAIN;
+    v1.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
     v1.heapID = param2;
-    v1.unk_04 = v0;
+    v1.window = v0;
 
     param0->unk_04 = ov21_021D4CA0(&v1);
 
-    ov21_021D4DA0(v0);
+    Pokedex_FreeWindow(v0);
 }
 
 static void ov21_021E95B0(UnkStruct_ov21_021E95B0 *param0)

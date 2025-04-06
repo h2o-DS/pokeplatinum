@@ -31,10 +31,10 @@ typedef struct PokedexGraphicData {
     UnkStruct_ov21_021D23F8 unk_168;
     UnkStruct_ov21_021D23F8 unk_18C;
     UnkStruct_ov21_021D22F8 unk_1B0;
-    UnkStruct_ov21_021D2584 unk_1E0;
-    UnkStruct_ov21_021D3124 unk_218;
-    SysTask *unk_270;
-    SysTask *unk_274;
+    CursorGraphics cursor;
+    CursorManager cursorMan;
+    SysTask *cursorPulse;
+    SysTask *cursorTransorm;
     NARC *pokedexGraphics;
 } PokedexGraphicData;
 

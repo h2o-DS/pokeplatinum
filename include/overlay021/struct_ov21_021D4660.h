@@ -11,6 +11,6 @@ typedef struct {
     // clang-format on
 
     UnkStruct_ov21_021D4340_1 unk_08;
-} UnkStruct_ov21_021D4660;
+} PokedexScreenState;
 
 #endif // POKEPLATINUM_STRUCT_OV21_021D4660_H

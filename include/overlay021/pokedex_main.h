@@ -8,11 +8,11 @@
 #include "overlay021/pokedex_app.h"
 #include "overlay021/pokedex_graphic_data.h"
 #include "overlay021/pokedex_sort_data.h"
+#include "overlay021/pokedex_text_manager.h"
 #include "overlay021/struct_ov21_021D22F8.h"
 #include "overlay021/struct_ov21_021D3FE0_decl.h"
 #include "overlay021/struct_ov21_021D423C_decl.h"
 #include "overlay021/struct_ov21_021D4C0C_decl.h"
-#include "overlay021/struct_ov21_021D4CA0.h"
 #include "overlay021/struct_ov21_021E68F4.h"
 
 #include "bg_window.h"
@@ -65,17 +65,17 @@ UnkStruct_ov21_021D423C *ov21_021D1364(PokedexApp *pokedexApp);
 UnkStruct_ov21_021D423C *ov21_021D1378(PokedexApp *pokedexApp);
 int *ov21_021D138C(PokedexApp *pokedexApp);
 int *ov21_021D13A0(PokedexApp *pokedexApp);
-int *ov21_021D13B4(PokedexApp *pokedexApp);
+int *PokedexMain_GetPageBinary(PokedexApp *pokedexApp);
 int *ov21_021D13C8(PokedexApp *pokedexApp);
 BOOL *ov21_021D13DC(PokedexApp *pokedexApp);
-PokedexSortData *ov21_021D13EC(PokedexApp *pokedexApp);
-PokedexGraphicData *ov21_021D13FC(PokedexApp *pokedexApp);
-UnkStruct_ov21_021E68F4 *ov21_021D1410(PokedexApp *pokedexApp, int param1);
-UnkStruct_ov21_021E68F4 *ov21_021D1430(PokedexApp *pokedexApp, int param1);
-void ov21_021D144C(Sprite *param0, int param1);
-void ov21_021D1498(Sprite *param0, UnkStruct_ov21_021D4CA0 *param1, int param2);
-void ov21_021D1524(Sprite *param0, UnkStruct_ov21_021D4CA0 *param1, int param2, int param3, int param4);
-void ov21_021D154C(TouchScreenHitTable *hitTable, int param1, int param2, int param3, int param4);
+PokedexSortData *PokedexMain_GetSortData(PokedexApp *pokedexApp);
+PokedexGraphicData *PokedexMain_GetGraphicData(PokedexApp *pokedexApp);
+PokedexScreenManager *PokedexMain_GetTopScreen(PokedexApp *pokedexApp, enum PokedexTopScreen pokedexTopScreen);
+PokedexScreenManager *PokedexMain_GetBottomScreen(PokedexApp *pokedexApp, enum PokedexBottomScreen pokedexBottomScreen);
+void PokedexMain_ButtonAnimation(Sprite *param0, int param1);
+void ov21_021D1498(Sprite *param0, PokedexTextManager *param1, int param2);
+void ov21_021D1524(Sprite *param0, PokedexTextManager *param1, int param2, int param3, int param4);
+void PokedexMain_SetHitTableBoundaries(TouchScreenHitTable *hitTable, int param1, int param2, int param3, int param4);
 void PokedexMain_SetLoadingScreenParams(PokedexLoadingScreen *pokedexLoadingScreen, BgConfig *bgConfig, int layer, NNSG2dScreenData *screenData, int topStart, int topEnd, int bottomStart, int bottomEnd, int duration);
 BOOL PokedexMain_LoadingScreenMove(PokedexLoadingScreen *pokedexLoadingScreen);
 void PokedexMain_DisplayNameNumberText(Window *window, int dexNumber, int species, int heapID);

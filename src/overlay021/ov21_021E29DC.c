@@ -3,6 +3,7 @@
 #include <nitro.h>
 #include <string.h>
 
+#include "generated/sdat.h"
 #include "generated/text_banks.h"
 
 #include "struct_decls/struct_02023FCC_decl.h"
@@ -10,20 +11,18 @@
 #include "overlay021/ov21_021D1FA4.h"
 #include "overlay021/ov21_021D4340.h"
 #include "overlay021/ov21_021D4C0C.h"
-#include "overlay021/ov21_021D4EE4.h"
 #include "overlay021/ov21_021DC9BC.h"
 #include "overlay021/ov21_021E0C68.h"
 #include "overlay021/ov21_021E3FFC.h"
 #include "overlay021/pokedex_app.h"
+#include "overlay021/pokedex_display_box.h"
 #include "overlay021/pokedex_graphic_data.h"
 #include "overlay021/pokedex_main.h"
+#include "overlay021/pokedex_panel.h"
 #include "overlay021/pokedex_sort.h"
 #include "overlay021/pokedex_sort_data.h"
+#include "overlay021/pokedex_text_manager.h"
 #include "overlay021/struct_ov21_021D4660.h"
-#include "overlay021/struct_ov21_021D4CA0.h"
-#include "overlay021/struct_ov21_021D4CB8.h"
-#include "overlay021/struct_ov21_021D4EE4_decl.h"
-#include "overlay021/struct_ov21_021D4FE4.h"
 #include "overlay021/struct_ov21_021D5B68.h"
 #include "overlay021/struct_ov21_021DE6D4.h"
 #include "overlay021/struct_ov21_021E68F4.h"
@@ -47,359 +46,391 @@
 
 #include "res/text/bank/pokedex.h"
 
-typedef struct {
-    int *unk_00;
-    PokedexSortData *unk_04;
-    int unk_08;
-    UnkStruct_ov21_021D5B68 *unk_0C;
-    UnkStruct_ov21_021DE6D4 *unk_10;
-    UnkStruct_ov21_021E68F4 *unk_14;
-    UnkStruct_ov21_021E68F4 *unk_18;
-    UnkStruct_ov21_021E68F4 *unk_1C;
-    UnkStruct_ov21_021E68F4 *unk_20;
-    UnkStruct_ov21_021E68F4 *unk_24;
+// button constants
+#define BUTTON_HEIGHT        16
+#define BUTTON_WIDTH         24
+#define BUTTON_HITBOX_HEIGHT 32
+#define BUTTON_HITBOX_WIDTH  40
+#define BUTTON_Y             24
+#define BUTTON_INFO_X        28
+#define BUTTON_AREA_X        (BUTTON_INFO_X + BUTTON_HITBOX_WIDTH) // 68
+#define BUTTON_CRY_X         (BUTTON_AREA_X + BUTTON_HITBOX_WIDTH) // 108
+#define BUTTON_SIZE_X        (BUTTON_CRY_X + BUTTON_HITBOX_WIDTH) // 148
+#define BUTTON_FORMS_X       (BUTTON_SIZE_X + BUTTON_HITBOX_WIDTH) // 188
+#define BUTTON_EXIT_X        (BUTTON_FORMS_X + BUTTON_HITBOX_WIDTH) // 228
+// bitwise page constants
+#define SCREEN_SCROLL (0x1 << 1)
+#define SCREEN_INFO   (0x1 << 2)
+#define SCREEN_AREA   (0x1 << 3)
+#define SCREEN_CRY    (0x1 << 4)
+#define SCREEN_SIZE   (0x1 << 5)
+#define SCREEN_FORMS  (0x1 << 8)
+
+enum PokedexButtons {
+    POKEDEX_BUTTONS_INFO = 0,
+    POKEDEX_BUTTONS_AREA,
+    POKEDEX_BUTTONS_CRY,
+    POKEDEX_BUTTONS_SIZE,
+    POKEDEX_BUTTONS_FORMS,
+    POKEDEX_BUTTONS_EXIT,
+    MAX_POKEDEX_BUTTONS
+};
+
+enum PokedexPages {
+    POKEDEX_PAGES_INFO = 0,
+    POKEDEX_PAGES_AREA,
+    POKEDEX_PAGES_CRY,
+    POKEDEX_PAGES_SIZE,
+    POKEDEX_PAGES_FORMS,
+    MAX_POKEDEX_PAGES
+};
+
+enum PokedexEntryStates {
+    POKEDEX_BANNER_STATES_EXIT = 0,
+    POKEDEX_BANNER_STATES_INFO,
+    POKEDEX_BANNER_STATES_AREA,
+    POKEDEX_BANNER_STATES_CRY,
+    POKEDEX_BANNER_STATES_SIZE,
+    POKEDEX_BANNER_STATES_HEIGHT,
+    POKEDEX_BANNER_STATES_WEIGHT,
+    POKEDEX_BANNER_STATES_FORMS,
+    MAX_POKEDEX_BANNER_STATES
+};
+
+typedef struct BannerSettings {
+    int *pageBinary;
+    PokedexSortData *pokedexSortData;
+    enum PokedexPages page;
+    UnkStruct_ov21_021D5B68 *scrollData;
+    UnkStruct_ov21_021DE6D4 *infoSprite;
+    PokedexScreenManager *formScreen;
+    PokedexScreenManager *foreignScreen;
+    PokedexScreenManager *areaScreen;
+    PokedexScreenManager *cryScreen;
+    PokedexScreenManager *sizeScreen;
     BOOL unk_28;
     BOOL unk_2C;
     BOOL unk_30;
-} UnkStruct_ov21_021E2BA8;
+} BannerSettings;
 
-typedef struct {
-    PokedexGraphicData *unk_00;
-} UnkStruct_ov21_021E2BBC;
+typedef struct PageBannerData {
+    enum PokedexPages page;
+    PokedexTextManager *bannerTextMan[MAX_POKEDEX_PAGES];
+    SpriteResource *spriteResource[4];
+} PageBannerData;
 
-typedef struct {
-    int unk_00;
-} UnkStruct_ov21_021E2C24;
-
-typedef struct {
-    int unk_00;
-    UnkStruct_ov21_021D4CA0 *unk_04[5];
-    SpriteResource *unk_18[4];
-} UnkStruct_ov21_021E326C;
-
-typedef struct {
+typedef struct PageTransitionData {
     int *unk_00;
-    UnkStruct_ov21_021E2BA8 *unk_04;
-    PokedexSortData *unk_08;
-    int unk_0C[6];
-    BOOL unk_24;
-    int unk_28;
-    BOOL unk_2C;
-    BOOL unk_30;
-} UnkStruct_ov21_021E342C;
+    BannerSettings *bannerSettings;
+    PokedexSortData *sortData;
+    int buttonStatus[MAX_POKEDEX_BUTTONS];
+    BOOL bottomScreenFade;
+    BOOL bottomScreenInteractible;
+    BOOL exiting;
+    BOOL cursorOnTarget;
+} PageTransitionData;
 
-typedef struct {
-    PokedexGraphicData *unk_00;
-} UnkStruct_ov21_021E3440;
-
-typedef struct {
+typedef struct UnkStruct_ov21_021E37CC {
     void *unk_00;
     void *unk_04;
 } UnkStruct_ov21_021E37CC;
 
-typedef struct {
+typedef struct PokedexBottomData {
     UnkStruct_02023FCC *unk_00;
-    TouchScreenHitTable *unk_04;
+    TouchScreenHitTable *touchScreenHitTable;
     UnkStruct_ov21_021E37CC unk_08;
     int unk_10;
-    UnkStruct_ov21_021D4EE4 *unk_14;
-    UnkStruct_ov21_021D4FE4 *unk_18;
-} UnkStruct_ov21_021E37B4;
+    PokedexPanelData *pokedexPanelData;
+    PokedexCursorData *pokedexCursorData;
+} PokedexBottomData;
 
-typedef struct {
-    Sprite *unk_00[6];
-    SpriteResource *unk_18[4];
-} UnkStruct_ov21_021E3900;
+typedef struct PageButtonGraphics {
+    Sprite *sprite[MAX_POKEDEX_BUTTONS];
+    SpriteResource *spriteResource[4];
+} PageButtonGraphics;
 
-static UnkStruct_ov21_021E2BA8 *ov21_021E2A5C(enum HeapId heapID, PokedexApp *param1);
-static UnkStruct_ov21_021E2BBC *ov21_021E2AE0(enum HeapId heapID, PokedexApp *param1);
-static UnkStruct_ov21_021D4660 *ov21_021E2B08(enum HeapId heapID, PokedexApp *param1);
-static void ov21_021E2BA8(UnkStruct_ov21_021E2BA8 *param0);
-static void ov21_021E2BBC(UnkStruct_ov21_021E2BBC *param0);
-static void ov21_021E2BD0(UnkStruct_ov21_021D4660 *param0);
-static int ov21_021E2C20(void);
-static int ov21_021E2C24(UnkStruct_ov21_021E6A68 *param0, void *param1);
-static int ov21_021E2C2C(UnkStruct_ov21_021E6A68 *param0, void *param1);
-static int ov21_021E2C5C(UnkStruct_ov21_021E6A68 *param0, void *param1);
-static int ov21_021E2C64(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3);
-static int ov21_021E2D10(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3);
-static int ov21_021E2D38(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3);
-static void ov21_021E3320(UnkStruct_ov21_021E2BA8 *param0);
-static BOOL ov21_021E2EC0(int param0);
-static BOOL ov21_021E2EC4(UnkStruct_ov21_021E2BA8 *param0, int param1, int param2);
-static void ov21_021E2E10(UnkStruct_ov21_021E2BA8 *param0);
-static void ov21_021E2E00(UnkStruct_ov21_021E2BA8 *param0);
-static void ov21_021E3080(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1, const UnkStruct_ov21_021E2BA8 *param2, int param3);
-static void ov21_021E30BC(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1);
-static void ov21_021E30E4(UnkStruct_ov21_021E2BBC *param0, const UnkStruct_ov21_021E2BA8 *param1, int param2);
-static void ov21_021E3178(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1, int param2);
-static void ov21_021E3224(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1);
-static void ov21_021E3268(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1, int param2);
-static void ov21_021E326C(UnkStruct_ov21_021E326C *param0);
-static void ov21_021E331C(UnkStruct_ov21_021E326C *param0, int param1);
-static void ov21_021E3270(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1, int param2);
-static void ov21_021E3304(UnkStruct_ov21_021E326C *param0);
-static void ov21_021E3FC0(UnkStruct_ov21_021E326C *param0, int param1, int param2);
-static void ov21_021E3BE0(UnkStruct_ov21_021E326C *param0);
-static void ov21_021E3BFC(UnkStruct_ov21_021E326C *param0);
-static UnkStruct_ov21_021E342C *ov21_021E33C4(enum HeapId heapID, PokedexApp *param1);
-static UnkStruct_ov21_021E3440 *ov21_021E3400(enum HeapId heapID, PokedexApp *param1);
-static UnkStruct_ov21_021D4660 *ov21_021E3428(enum HeapId heapID, PokedexApp *param1);
-static void ov21_021E342C(UnkStruct_ov21_021E342C *param0);
-static void ov21_021E3440(UnkStruct_ov21_021E3440 *param0);
-static void ov21_021E3454(UnkStruct_ov21_021D4660 *param0);
-static int ov21_021E3458(void);
-static int ov21_021E345C(UnkStruct_ov21_021E6A68 *param0, void *param1);
-static int ov21_021E34AC(UnkStruct_ov21_021E6A68 *param0, void *param1);
-static int ov21_021E3520(UnkStruct_ov21_021E6A68 *param0, void *param1);
-static int ov21_021E3540(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3);
-static int ov21_021E35D0(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3);
-static int ov21_021E3604(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3);
-static BOOL ov21_021E3C18(UnkStruct_ov21_021E342C *param0, int param1, int param2);
-static void ov21_021E3688(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1, enum HeapId heapID);
-static void ov21_021E3724(UnkStruct_ov21_021E342C *param0);
-static void ov21_021E3734(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1);
-static void ov21_021E37B4(UnkStruct_ov21_021E37B4 *param0);
-static void ov21_021E37CC(u32 param0, u32 param1, void *param2);
-static void ov21_021E3C6C(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1, enum HeapId heapID);
-static void ov21_021E3D48(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1);
-static void ov21_021E3E74(UnkStruct_ov21_021E37B4 *param0);
-static void ov21_021E3E8C(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1);
-static void ov21_021E3EEC(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1);
-static void ov21_021E3F2C(UnkStruct_ov21_021E3440 *param0, const UnkStruct_ov21_021E37B4 *param1, const UnkStruct_ov21_021E342C *param2);
-static void ov21_021E3F48(UnkStruct_ov21_021E3440 *param0, const UnkStruct_ov21_021E37B4 *param1, const UnkStruct_ov21_021E342C *param2);
-static void ov21_021E3F88(UnkStruct_ov21_021E3440 *param0, const UnkStruct_ov21_021E37B4 *param1);
-static BOOL ov21_021E3F98(UnkStruct_ov21_021E3440 *param0, BOOL param1);
-static void ov21_021E3C2C(UnkStruct_ov21_021E342C *param0);
-static void ov21_021E3C34(UnkStruct_ov21_021E342C *param0);
-static void ov21_021E3C64(UnkStruct_ov21_021E342C *param0);
-static void ov21_021E3900(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1, const UnkStruct_ov21_021E342C *param2, int param3);
-static void ov21_021E393C(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1);
-static void ov21_021E3960(UnkStruct_ov21_021E3440 *param0, const UnkStruct_ov21_021E342C *param1, int param2);
-static void ov21_021E39FC(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1, int param2);
-static void ov21_021E3AAC(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1);
-static void ov21_021E3AF0(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1, int param2);
-static void ov21_021E3BC0(UnkStruct_ov21_021E3900 *param0);
-static void ov21_021E3FE4(UnkStruct_ov21_021E3900 *param0, const UnkStruct_ov21_021E342C *param1);
-static void ov21_021E3BD8(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1, int param2);
-static void ov21_021E3BDC(UnkStruct_ov21_021E3900 *param0);
+static BannerSettings *NewBannerSettings(enum HeapId heapID, PokedexApp *pokedexApp);
+static PokedexGraphicData **GetGraphicData1(enum HeapId heapID, PokedexApp *pokedexApp);
+static PokedexScreenState *NewBannerScreenState(enum HeapId heapID, PokedexApp *pokedexApp);
+static void FreeBannerSettings(BannerSettings *bannerSettings);
+static void FreeGraphicData1(PokedexGraphicData **pokedexGraphicData);
+static void FreeScreenState(PokedexScreenState *pokedexScreenState);
+static int NumBannerStates(void);
+static int ov21_021E2C24(PokedexDataManager *param0, void *param1);
+static int ov21_021E2C2C(PokedexDataManager *param0, void *param1);
+static int SetPageToInfo(PokedexDataManager *param0, void *param1);
+static int EnterBanner(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3);
+static int UpdateBanner(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3);
+static int ExitBanner(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3);
+static void ov21_021E3320(BannerSettings *bannerSettings);
+static BOOL ReturnFalse(enum PokedexPages page);
+static BOOL SetCurrentPage(BannerSettings *bannerSettings, enum PokedexPages newPage, enum PokedexPages oldPage);
+static void ResetDisplay(BannerSettings *bannerSettings);
+static void ExitEntry(BannerSettings *bannerSettings);
+static void DisplayBanner(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData, const BannerSettings *bannerSettings, int param3);
+static void FreeBanner(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData);
+static void InitTopScreenGraphics(PokedexGraphicData **pokedexGraphicData, const BannerSettings *bannerSettings, int param2);
+static void SetPageBannerSprites(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData, int param2);
+static void FreeBannerGraphics(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData);
+static void dummy3(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData, int param2);
+static void dummy4(PageBannerData *pageBannerData);
+static void dummy5(PageBannerData *pageBannerData, int param1);
+static void DisplayPageName(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData, int param2);
+static void FreeBannerTextMan(PageBannerData *pageBannerData);
+static void UpdateBannerDisplay(PageBannerData *pageBannerData, enum PokedexPages newPage, enum PokedexPages oldPage);
+static void PageBannerXLU(PageBannerData *pageBannerData);
+static void PageBannerNormal(PageBannerData *pageBannerData);
+static PageTransitionData *NewPageTransitionData(enum HeapId heapID, PokedexApp *param1);
+static PokedexGraphicData **GetGraphicData2(enum HeapId heapID, PokedexApp *param1);
+static PokedexScreenState *NullScreenState(enum HeapId heapID, PokedexApp *param1);
+static void FreePageTransitionData(PageTransitionData *pageTransitionData);
+static void FreeGraphicData2(PokedexGraphicData **pokedexGraphicData);
+static void dummy6(PokedexScreenState *pokedexScreenState);
+static int NumPanelStates(void);
+static int ResetBottomData(PokedexDataManager *param0, void *param1);
+static int UpdateEntryPage(PokedexDataManager *param0, void *param1);
+static int FreeBottomData(PokedexDataManager *param0, void *param1);
+static int EnterPokedexEntry(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3);
+static int UpdateBottomDisplay(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3);
+static int ExitPokedexEntry(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3);
+static BOOL GoToPage(PageTransitionData *pageTransitionData, enum PokedexPages newPage, enum PokedexPages oldPage);
+static void InitHitTable(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData, enum HeapId heapID);
+static void DeactivateAllButtons(PageTransitionData *pageTransitionData);
+static void SetActiveButton(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData);
+static void FreeHitTable(PokedexBottomData *pokedexBottomData);
+static void ButtonEffects(u32 param0, u32 param1, void *param2);
+static void InitCursorData(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData, enum HeapId heapID);
+static void PressButton(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData);
+static void freePanel(PokedexBottomData *pokedexBottomData);
+static void CursorToActivePage(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData);
+static void CheckForSpeciesChange(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData);
+static void CursorToCurrentButton(PokedexGraphicData **pokedexGraphicData, const PokedexBottomData *pokedexBottomData, const PageTransitionData *pageTransitionData);
+static void UpdateCursor(PokedexGraphicData **pokedexGraphicData, const PokedexBottomData *pokedexBottomData, const PageTransitionData *pageTransitionData);
+static void CursorTransformToCurrent(PokedexGraphicData **pokedexGraphicData, const PokedexBottomData *pokedexBottomData);
+static BOOL UpdateCursorVisibility(PokedexGraphicData **pokedexGraphicData, BOOL param1);
+static void CheckForExit(PageTransitionData *pageTransitionData);
+static void CheckForB(PageTransitionData *pageTransitionData);
+static void setExitingFalse(PageTransitionData *pageTransitionData);
+static void DisplayBottomScreen(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData, const PageTransitionData *pageTransitionData, int heapID);
+static void FreePageButtons(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData);
+static void InitBottomScreenGraphics(PokedexGraphicData **pokedexGraphicData, const PageTransitionData *pageTransitionData, int heapID);
+static void SetPageButtonSprites(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData, int heapID);
+static void FreePageButtonGraphics(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData);
+static void DisplayPageButtons(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData, int heapID);
+static void RemovePageButtons(PageButtonGraphics *pageButtonGraphics);
+static void DisplayFormButton(PageButtonGraphics *pageButtonGraphics, const PageTransitionData *pageTransitionData);
+static void Dummy1(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData, int heapID);
+static void Dummy2(PageButtonGraphics *pageButtonGraphics);
 
-void ov21_021E29DC(UnkStruct_ov21_021E68F4 *param0, PokedexApp *param1, enum HeapId heapID)
+void PokedexEntry_BannerTransitions(PokedexScreenManager *param0, PokedexApp *param1, enum HeapId heapID)
 {
-    UnkStruct_ov21_021E2BA8 *v0;
-    UnkStruct_ov21_021E2BBC *v1;
-    UnkStruct_ov21_021D4660 *v2;
+    BannerSettings *bannerSettings;
+    PokedexGraphicData **pokedexGraphicData;
+    PokedexScreenState *pokedexScreenState;
 
-    v0 = ov21_021E2A5C(heapID, param1);
-    v1 = ov21_021E2AE0(heapID, param1);
-    v2 = ov21_021E2B08(heapID, param1);
+    bannerSettings = NewBannerSettings(heapID, param1);
+    pokedexGraphicData = GetGraphicData1(heapID, param1);
+    pokedexScreenState = NewBannerScreenState(heapID, param1);
 
-    param0->unk_00 = v0;
-    param0->unk_04 = v1;
-    param0->unk_20 = v2;
-    param0->unk_24 = ov21_021E2C20();
+    param0->operationalData = bannerSettings;
+    param0->graphicData = pokedexGraphicData;
+    param0->pokedexScreenState = pokedexScreenState;
+    param0->numScreenStates = NumBannerStates();
 
-    param0->unk_08[0] = ov21_021E2C24;
-    param0->unk_08[1] = ov21_021E2C2C;
-    param0->unk_08[2] = ov21_021E2C5C;
-    param0->unk_14[0] = ov21_021E2C64;
-    param0->unk_14[1] = ov21_021E2D10;
-    param0->unk_14[2] = ov21_021E2D38;
+    param0->dataTransition[POKEDEX_TRANSITION_IN] = ov21_021E2C24;
+    param0->dataTransition[POKEDEX_TRANSITION_UPDATE] = ov21_021E2C2C;
+    param0->dataTransition[POKEDEX_TRANSITION_OUT] = SetPageToInfo;
+    param0->displayTransition[POKEDEX_TRANSITION_IN] = EnterBanner;
+    param0->displayTransition[POKEDEX_TRANSITION_UPDATE] = UpdateBanner;
+    param0->displayTransition[POKEDEX_TRANSITION_OUT] = ExitBanner;
 }
 
-void ov21_021E2A3C(UnkStruct_ov21_021E68F4 *param0)
+void PokedexEntry_FreeData(PokedexScreenManager *param0)
 {
-    ov21_021E2BA8(param0->unk_00);
-    ov21_021E2BBC(param0->unk_04);
-    ov21_021E2BD0(param0->unk_20);
+    FreeBannerSettings(param0->operationalData);
+    FreeGraphicData1(param0->graphicData);
+    FreeScreenState(param0->pokedexScreenState);
 }
 
-BOOL ov21_021E2A54(const UnkStruct_ov21_021E68F4 *param0)
+BOOL ov21_021E2A54(const PokedexScreenManager *param0)
 {
-    const UnkStruct_ov21_021E2BA8 *v0 = param0->unk_00;
-    return v0->unk_28;
+    const BannerSettings *bannerSettings = param0->operationalData;
+    return bannerSettings->unk_28;
 }
 
-static UnkStruct_ov21_021E2BA8 *ov21_021E2A5C(enum HeapId heapID, PokedexApp *param1)
+static BannerSettings *NewBannerSettings(enum HeapId heapID, PokedexApp *pokedexApp)
 {
-    UnkStruct_ov21_021E2BA8 *v0;
-    UnkStruct_ov21_021E68F4 *v1;
+    BannerSettings *bannerSettings;
+    PokedexScreenManager *screenMan;
 
-    v0 = Heap_AllocFromHeap(heapID, sizeof(UnkStruct_ov21_021E2BA8));
+    bannerSettings = Heap_AllocFromHeap(heapID, sizeof(BannerSettings));
 
-    GF_ASSERT(v0);
-    memset(v0, 0, sizeof(UnkStruct_ov21_021E2BA8));
+    GF_ASSERT(bannerSettings);
+    memset(bannerSettings, 0, sizeof(BannerSettings));
 
-    v0->unk_00 = ov21_021D13B4(param1);
-    v0->unk_04 = ov21_021D13EC(param1);
-    v0->unk_08 = 0;
+    bannerSettings->pageBinary = PokedexMain_GetPageBinary(pokedexApp);
+    bannerSettings->pokedexSortData = PokedexMain_GetSortData(pokedexApp);
+    bannerSettings->page = POKEDEX_PAGES_INFO;
 
-    v1 = ov21_021D1410(param1, 2);
-    v0->unk_10 = v1->unk_00;
+    screenMan = PokedexMain_GetTopScreen(pokedexApp, POKEDEX_TOP_INFO);
+    bannerSettings->infoSprite = screenMan->operationalData;
 
-    v1 = ov21_021D1410(param1, 3);
-    v0->unk_14 = v1;
+    screenMan = PokedexMain_GetTopScreen(pokedexApp, POKEDEX_TOP_FORMS);
+    bannerSettings->formScreen = screenMan;
 
-    v1 = ov21_021D1410(param1, 4);
-    v0->unk_18 = v1;
+    screenMan = PokedexMain_GetTopScreen(pokedexApp, POKEDEX_TOP_FOREIGN);
+    bannerSettings->foreignScreen = screenMan;
 
-    v1 = ov21_021D1410(param1, 6);
-    v0->unk_1C = v1;
+    screenMan = PokedexMain_GetTopScreen(pokedexApp, POKEDEX_TOP_AREA);
+    bannerSettings->areaScreen = screenMan;
 
-    v1 = ov21_021D1410(param1, 7);
-    v0->unk_20 = v1;
+    screenMan = PokedexMain_GetTopScreen(pokedexApp, POKEDEX_TOP_CRY);
+    bannerSettings->cryScreen = screenMan;
 
-    v1 = ov21_021D1430(param1, 6);
-    v0->unk_24 = v1;
+    screenMan = PokedexMain_GetBottomScreen(pokedexApp, POKEDEX_BOTTOM_SIZE);
+    bannerSettings->sizeScreen = screenMan;
 
-    v1 = ov21_021D1410(param1, 0);
-    v0->unk_0C = v1->unk_00;
+    screenMan = PokedexMain_GetTopScreen(pokedexApp, POKEDEX_TOP_EXIT);
+    bannerSettings->scrollData = screenMan->operationalData;
 
-    v0->unk_2C = 1;
-    v0->unk_30 = 1;
+    bannerSettings->unk_2C = 1;
+    bannerSettings->unk_30 = 1;
 
-    return v0;
+    return bannerSettings;
 }
 
-static UnkStruct_ov21_021E2BBC *ov21_021E2AE0(enum HeapId heapID, PokedexApp *param1)
+static PokedexGraphicData **GetGraphicData1(enum HeapId heapID, PokedexApp *pokedexApp)
 {
-    UnkStruct_ov21_021E2BBC *v0;
-    UnkStruct_ov21_021E68F4 *v1;
+    PokedexGraphicData **graphicData = Heap_AllocFromHeap(heapID, sizeof(PokedexGraphicData *));
 
-    v0 = Heap_AllocFromHeap(heapID, sizeof(UnkStruct_ov21_021E2BBC));
+    GF_ASSERT(graphicData);
+    memset(graphicData, 0, sizeof(PokedexGraphicData *));
 
-    GF_ASSERT(v0);
-    memset(v0, 0, sizeof(UnkStruct_ov21_021E2BBC));
+    *graphicData = PokedexMain_GetGraphicData(pokedexApp);
 
-    v0->unk_00 = ov21_021D13FC(param1);
-
-    return v0;
+    return graphicData;
 }
 
-static UnkStruct_ov21_021D4660 *ov21_021E2B08(enum HeapId heapID, PokedexApp *param1)
+static PokedexScreenState *NewBannerScreenState(enum HeapId heapID, PokedexApp *pokedexApp)
 {
-    UnkStruct_ov21_021D4660 *v0;
-    int v1 = ov21_021E2C20();
+    PokedexScreenState *pokedexScreenState;
+    int numScreenStates = NumBannerStates();
 
-    v0 = Heap_AllocFromHeap(heapID, sizeof(UnkStruct_ov21_021D4660) * v1);
+    pokedexScreenState = Heap_AllocFromHeap(heapID, sizeof(PokedexScreenState) * numScreenStates);
 
-    GF_ASSERT(v0);
-    memset(v0, 0, sizeof(UnkStruct_ov21_021D4660) * v1);
+    GF_ASSERT(pokedexScreenState);
+    memset(pokedexScreenState, 0, sizeof(PokedexScreenState) * numScreenStates);
 
-    ov21_021D47F0(heapID, &v0[0], param1, (0x1 << 1));
-    ov21_021D4A94(heapID, &v0[1], param1, (0x1 << 2));
-    ov21_021D48B8(heapID, &v0[2], param1, (0x1 << 3));
-    ov21_021D491C(heapID, &v0[3], param1, (0x1 << 4));
-    ov21_021D4980(heapID, &v0[4], param1, (0x1 << 5));
-    ov21_021D49E4(heapID, &v0[5], param1, (0x1 << 6));
-    ov21_021D4A3C(heapID, &v0[6], param1, (0x1 << 7));
-    ov21_021D4B50(heapID, &v0[7], param1, (0x1 << 8));
+    ov21_021D47F0(heapID, &pokedexScreenState[POKEDEX_BANNER_STATES_EXIT], pokedexApp, (0x1 << 1));
+    ov21_021D4A94(heapID, &pokedexScreenState[POKEDEX_BANNER_STATES_INFO], pokedexApp, (0x1 << 2));
+    ov21_021D48B8(heapID, &pokedexScreenState[POKEDEX_BANNER_STATES_AREA], pokedexApp, (0x1 << 3));
+    ov21_021D491C(heapID, &pokedexScreenState[POKEDEX_BANNER_STATES_CRY], pokedexApp, (0x1 << 4));
+    ov21_021D4980(heapID, &pokedexScreenState[POKEDEX_BANNER_STATES_SIZE], pokedexApp, (0x1 << 5));
+    ov21_021D49E4(heapID, &pokedexScreenState[POKEDEX_BANNER_STATES_HEIGHT], pokedexApp, (0x1 << 6));
+    ov21_021D4A3C(heapID, &pokedexScreenState[POKEDEX_BANNER_STATES_WEIGHT], pokedexApp, (0x1 << 7));
+    ov21_021D4B50(heapID, &pokedexScreenState[POKEDEX_BANNER_STATES_FORMS], pokedexApp, (0x1 << 8));
 
-    return v0;
+    return pokedexScreenState;
 }
 
-static void ov21_021E2BA8(UnkStruct_ov21_021E2BA8 *param0)
+static void FreeBannerSettings(BannerSettings *bannerSettings)
 {
-    GF_ASSERT(param0);
-    Heap_FreeToHeap(param0);
+    GF_ASSERT(bannerSettings);
+    Heap_FreeToHeap(bannerSettings);
 }
 
-static void ov21_021E2BBC(UnkStruct_ov21_021E2BBC *param0)
+static void FreeGraphicData1(PokedexGraphicData **graphicData)
 {
-    GF_ASSERT(param0);
-    Heap_FreeToHeap(param0);
+    GF_ASSERT(graphicData);
+    Heap_FreeToHeap(graphicData);
 }
 
-static void ov21_021E2BD0(UnkStruct_ov21_021D4660 *param0)
+static void FreeScreenState(PokedexScreenState *pokedexScreenState)
 {
-    GF_ASSERT(param0);
+    GF_ASSERT(pokedexScreenState);
 
-    ov21_021D4660(&param0[0]);
-    ov21_021D4660(&param0[1]);
-    ov21_021D4660(&param0[2]);
-    ov21_021D4660(&param0[3]);
-    ov21_021D4660(&param0[4]);
-    ov21_021D4660(&param0[5]);
-    ov21_021D4660(&param0[6]);
-    ov21_021D4660(&param0[7]);
+    ov21_021D4660(&pokedexScreenState[POKEDEX_BANNER_STATES_EXIT]);
+    ov21_021D4660(&pokedexScreenState[POKEDEX_BANNER_STATES_INFO]);
+    ov21_021D4660(&pokedexScreenState[POKEDEX_BANNER_STATES_AREA]);
+    ov21_021D4660(&pokedexScreenState[POKEDEX_BANNER_STATES_CRY]);
+    ov21_021D4660(&pokedexScreenState[POKEDEX_BANNER_STATES_SIZE]);
+    ov21_021D4660(&pokedexScreenState[POKEDEX_BANNER_STATES_HEIGHT]);
+    ov21_021D4660(&pokedexScreenState[POKEDEX_BANNER_STATES_WEIGHT]);
+    ov21_021D4660(&pokedexScreenState[POKEDEX_BANNER_STATES_FORMS]);
 
-    Heap_FreeToHeap(param0);
+    Heap_FreeToHeap(pokedexScreenState);
 }
 
-static int ov21_021E2C20(void)
+static int NumBannerStates(void)
 {
-    return 8;
+    return MAX_POKEDEX_BANNER_STATES;
 }
 
-static int ov21_021E2C24(UnkStruct_ov21_021E6A68 *param0, void *param1)
+static int ov21_021E2C24(PokedexDataManager *param0, void *data)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param1;
-    UnkStruct_ov21_021E2C24 *v1 = param0->unk_08;
+    BannerSettings *bannerSettings = data;
 
-    v0->unk_10->unk_1C = 1;
+    bannerSettings->infoSprite->cryPending = 1;
 
     return 1;
 }
 
-static int ov21_021E2C2C(UnkStruct_ov21_021E6A68 *param0, void *param1)
+static int ov21_021E2C2C(PokedexDataManager *param0, void *data)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param1;
-    UnkStruct_ov21_021E2C24 *v1 = param0->unk_08;
+    BannerSettings *bannerSettings = data;
 
-    if (param0->unk_0C == 1) {
-        return 1;
+    if (param0->exit == TRUE) {
+        return TRUE;
     }
 
-    if (param0->unk_10 == 1) {
-        return 0;
+    if (param0->unchanged == TRUE) {
+        return FALSE;
     }
 
-    if (param0->unk_00 == 0) {
-        ov21_021E3320(v0);
-        param0->unk_00++;
+    if (param0->state == 0) {
+        ov21_021E3320(bannerSettings);
+        param0->state++;
     }
 
-    return 0;
+    return FALSE;
 }
 
-static int ov21_021E2C5C(UnkStruct_ov21_021E6A68 *param0, void *param1)
+static int SetPageToInfo(PokedexDataManager *param0, void *data)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param1;
-    UnkStruct_ov21_021E2C24 *v1 = param0->unk_08;
+    BannerSettings *bannerSettings = data;
 
-    v0->unk_08 = 0;
+    bannerSettings->page = POKEDEX_PAGES_INFO;
     return 1;
 }
 
-static int ov21_021E2C64(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3)
+static int EnterBanner(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3)
 {
-    const UnkStruct_ov21_021E2BA8 *v0 = param2;
-    const UnkStruct_ov21_021E2C24 *v1 = param3->unk_08;
-    UnkStruct_ov21_021E2BBC *v2 = param0;
-    UnkStruct_ov21_021E326C *v3 = param1->unk_08;
+    const BannerSettings *bannerSettings = param2;
+    PokedexGraphicData **pokedexGraphicData = param0;
+    PageBannerData *pageBannerData = graphicsMan->pageGraphics;
     BOOL v4;
 
-    switch (param1->unk_00) {
+    switch (graphicsMan->state) {
     case 0:
-        param1->unk_08 = Heap_AllocFromHeap(param1->heapID, sizeof(UnkStruct_ov21_021E326C));
-        memset(param1->unk_08, 0, sizeof(UnkStruct_ov21_021E326C));
-        v3 = param1->unk_08;
-        v3->unk_00 = v0->unk_08;
-        param1->unk_00++;
+        graphicsMan->pageGraphics = Heap_AllocFromHeap(graphicsMan->heapID, sizeof(PageBannerData));
+        memset(graphicsMan->pageGraphics, 0, sizeof(PageBannerData));
+        pageBannerData = graphicsMan->pageGraphics;
+        pageBannerData->page = bannerSettings->page;
+        graphicsMan->state++;
         break;
     case 1:
-        ov21_021E3080(v2, v3, v0, param1->heapID);
-        ov21_021E3BE0(v3);
-        ov21_021D23F8(&v2->unk_00->unk_168, 4, -16, 0, 0, 16, (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_BD), (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_BD), 0);
-        param1->unk_00++;
+        DisplayBanner(pokedexGraphicData, pageBannerData, bannerSettings, graphicsMan->heapID);
+        PageBannerXLU(pageBannerData);
+        ov21_021D23F8(&(*pokedexGraphicData)->unk_168, 4, -16, 0, 0, 16, (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_BD), (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_BD), 0);
+        graphicsMan->state++;
         break;
     case 2:
-        if (ov21_021D2424(&v2->unk_00->unk_168)) {
-            param1->unk_00++;
+        if (ov21_021D2424(&(*pokedexGraphicData)->unk_168)) {
+            graphicsMan->state++;
         }
         break;
     case 3:
-        ov21_021E3BFC(v3);
+        PageBannerNormal(pageBannerData);
         return 1;
     default:
         GF_ASSERT(0);
@@ -409,53 +440,50 @@ static int ov21_021E2C64(void *param0, UnkStruct_ov21_021E6B20 *param1, const vo
     return 0;
 }
 
-static int ov21_021E2D10(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3)
+static int UpdateBanner(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3)
 {
-    const UnkStruct_ov21_021E2BA8 *v0 = param2;
-    const UnkStruct_ov21_021E2C24 *v1 = param3->unk_08;
-    UnkStruct_ov21_021E2BBC *v2 = param0;
-    UnkStruct_ov21_021E326C *v3 = param1->unk_08;
+    const BannerSettings *bannerSettings = param2;
+    PageBannerData *pageBannerData = graphicsMan->pageGraphics;
 
-    if (v3->unk_00 != v0->unk_08) {
-        ov21_021E331C(v3, v0->unk_08);
-        ov21_021E3FC0(v3, v0->unk_08, v3->unk_00);
-        v3->unk_00 = v0->unk_08;
+    if (pageBannerData->page != bannerSettings->page) {
+        dummy5(pageBannerData, bannerSettings->page);
+        UpdateBannerDisplay(pageBannerData, bannerSettings->page, pageBannerData->page);
+        pageBannerData->page = bannerSettings->page;
     }
 
     return 0;
 }
 
-static int ov21_021E2D38(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3)
+static int ExitBanner(void *param0, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3)
 {
-    const UnkStruct_ov21_021E2BA8 *v0 = param2;
-    const UnkStruct_ov21_021E2C24 *v1 = param3->unk_08;
-    UnkStruct_ov21_021E2BBC *v2 = param0;
-    UnkStruct_ov21_021E326C *v3 = param1->unk_08;
+    const BannerSettings *bannerSettings = param2;
+    PokedexGraphicData **pokedexGraphicData = param0;
+    PageBannerData *pageBannerData = graphicsMan->pageGraphics;
 
-    switch (param1->unk_00) {
+    switch (graphicsMan->state) {
     case 0:
-        if (v0->unk_2C) {
-            ov21_021E3BE0(v3);
+        if (bannerSettings->unk_2C) {
+            PageBannerXLU(pageBannerData);
 
-            ov21_021D23F8(&v2->unk_00->unk_168, 4, 0, -16, 16, 0, (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_BD), (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_BD), 0);
+            ov21_021D23F8(&(*pokedexGraphicData)->unk_168, 4, 0, -16, 16, 0, (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_BD), (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_BD), 0);
         } else {
-            ov21_021D23F8(&v2->unk_00->unk_168, 4, 0, -16, 16, 0, (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_OBJ | GX_BLEND_PLANEMASK_BD), 0, 0);
+            ov21_021D23F8(&(*pokedexGraphicData)->unk_168, 4, 0, -16, 16, 0, (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_OBJ | GX_BLEND_PLANEMASK_BD), 0, 0);
         }
-        param1->unk_00++;
+        graphicsMan->state++;
         break;
     case 1:
-        if (ov21_021D2424(&v2->unk_00->unk_168)) {
-            param1->unk_00++;
+        if (ov21_021D2424(&(*pokedexGraphicData)->unk_168)) {
+            graphicsMan->state++;
         }
         break;
     case 2:
-        ov21_021E30BC(v2, v3);
-        param1->unk_00++;
+        FreeBanner(pokedexGraphicData, pageBannerData);
+        graphicsMan->state++;
         break;
     case 3:
-        Heap_FreeToHeap(param1->unk_08);
-        param1->unk_08 = NULL;
-        param1->unk_00++;
+        Heap_FreeToHeap(graphicsMan->pageGraphics);
+        graphicsMan->pageGraphics = NULL;
+        graphicsMan->state++;
         break;
     case 4:
         return 1;
@@ -467,517 +495,508 @@ static int ov21_021E2D38(void *param0, UnkStruct_ov21_021E6B20 *param1, const vo
     return 0;
 }
 
-static void ov21_021E2E00(UnkStruct_ov21_021E2BA8 *param0)
+static void ExitEntry(BannerSettings *bannerSettings)
 {
-    ov21_021E2E10(param0);
-    param0->unk_30 = 1;
+    ResetDisplay(bannerSettings);
+    bannerSettings->unk_30 = 1;
 }
 
-static void ov21_021E2E10(UnkStruct_ov21_021E2BA8 *param0)
+static void ResetDisplay(BannerSettings *bannerSettings)
 {
-    *param0->unk_00 |= (0x1 << 1);
-    param0->unk_28 = 0;
-    param0->unk_10->unk_14 = 0;
+    *bannerSettings->pageBinary |= SCREEN_SCROLL;
+    bannerSettings->unk_28 = 0;
+    bannerSettings->infoSprite->unk_14 = 0;
 
-    ov21_021E0CDC(param0->unk_18, 0);
+    ov21_021E0CDC(bannerSettings->foreignScreen, 0);
 
-    switch (param0->unk_08) {
-    case 0:
-        param0->unk_10->unk_08 = 56;
-        param0->unk_10->unk_0C = 80;
-        ov21_021E0CD4(param0->unk_18, 56, 80);
-        param0->unk_0C->unk_14 = 1;
-        param0->unk_2C = 1;
+    switch (bannerSettings->page) {
+    case POKEDEX_PAGES_INFO:
+        bannerSettings->infoSprite->x = 56;
+        bannerSettings->infoSprite->y = 80;
+        ov21_021E0CD4(bannerSettings->foreignScreen, 56, 80);
+        bannerSettings->scrollData->unk_14 = 1;
+        bannerSettings->unk_2C = 1;
         break;
-    case 1:
-        ov21_021DCA4C(param0->unk_1C, 1);
-        ov21_021DCA54(param0->unk_1C, 4);
-        ov21_021DCA44(param0->unk_1C, 56, 80);
-        param0->unk_0C->unk_14 = 1;
-        param0->unk_2C = 1;
+    case POKEDEX_PAGES_AREA:
+        ov21_021DCA4C(bannerSettings->areaScreen, 1);
+        ov21_021DCA54(bannerSettings->areaScreen, 4);
+        ov21_021DCA44(bannerSettings->areaScreen, 56, 80);
+        bannerSettings->scrollData->unk_14 = 1;
+        bannerSettings->unk_2C = 1;
         break;
-    case 2:
-        ov21_021E4070(param0->unk_20, 1);
-        ov21_021E4078(param0->unk_20, 4);
-        ov21_021E4068(param0->unk_20, 56, 80);
-        param0->unk_0C->unk_14 = 1;
-        param0->unk_2C = 1;
+    case POKEDEX_PAGES_CRY:
+        ov21_021E4070(bannerSettings->cryScreen, 1);
+        ov21_021E4078(bannerSettings->cryScreen, 4);
+        ov21_021E4068(bannerSettings->cryScreen, 56, 80);
+        bannerSettings->scrollData->unk_14 = 1;
+        bannerSettings->unk_2C = 1;
         break;
-    case 3:
-        param0->unk_0C->unk_14 = 0;
-        param0->unk_2C = 0;
+    case POKEDEX_PAGES_SIZE:
+        bannerSettings->scrollData->unk_14 = 0;
+        bannerSettings->unk_2C = 0;
         break;
-    case 4:
-        param0->unk_0C->unk_14 = 0;
-        param0->unk_2C = 0;
+    case POKEDEX_PAGES_FORMS:
+        bannerSettings->scrollData->unk_14 = 0;
+        bannerSettings->unk_2C = 0;
         break;
     default:
         break;
     }
 }
 
-static BOOL ov21_021E2EC0(int param0)
+static BOOL ReturnFalse(enum PokedexPages page)
 {
-    return 0;
+    return FALSE;
 }
 
-static BOOL ov21_021E2EC4(UnkStruct_ov21_021E2BA8 *param0, int param1, int param2)
+static BOOL SetCurrentPage(BannerSettings *bannerSettings, enum PokedexPages newPage, enum PokedexPages oldPage)
 {
-    int v0, v1;
-    BOOL v2 = 1;
+    int x, y;
+    BOOL pageAccessible = TRUE;
 
-    switch (param1) {
-    case 0:
-        if (ov21_021E2EC0(param2)) {
-            param0->unk_10->unk_14 = 2;
+    switch (newPage) {
+    case POKEDEX_PAGES_INFO:
+        if (ReturnFalse(oldPage)) {
+            bannerSettings->infoSprite->unk_14 = 2;
         } else {
-            param0->unk_10->unk_14 = 1;
+            bannerSettings->infoSprite->unk_14 = 1;
         }
 
-        *param0->unk_00 |= (0x1 << 2);
-        param0->unk_08 = 0;
-        v0 = 48;
-        v1 = 72;
+        *bannerSettings->pageBinary |= SCREEN_INFO;
+        bannerSettings->page = POKEDEX_PAGES_INFO;
+        x = 48;
+        y = 72;
         break;
-    case 1:
-        if (ov21_021E2EC0(param2)) {
-            ov21_021DCA4C(param0->unk_1C, 1);
-            ov21_021DCA54(param0->unk_1C, 1);
+    case POKEDEX_PAGES_AREA:
+        if (ReturnFalse(oldPage)) {
+            ov21_021DCA4C(bannerSettings->areaScreen, 1);
+            ov21_021DCA54(bannerSettings->areaScreen, 1);
         } else {
-            ov21_021DCA4C(param0->unk_1C, 0);
+            ov21_021DCA4C(bannerSettings->areaScreen, 0);
         }
 
-        *param0->unk_00 |= (0x1 << 3);
-        param0->unk_08 = 1;
-        v0 = 40;
-        v1 = 120;
+        *bannerSettings->pageBinary |= SCREEN_AREA;
+        bannerSettings->page = POKEDEX_PAGES_AREA;
+        x = 40;
+        y = 120;
         break;
-    case 2:
-        if (ov21_021E2EC0(param2)) {
-            ov21_021E4070(param0->unk_20, 1);
-            ov21_021E4078(param0->unk_20, 1);
+    case POKEDEX_PAGES_CRY:
+        if (ReturnFalse(oldPage)) {
+            ov21_021E4070(bannerSettings->cryScreen, 1);
+            ov21_021E4078(bannerSettings->cryScreen, 1);
         } else {
-            ov21_021E4070(param0->unk_20, 0);
+            ov21_021E4070(bannerSettings->cryScreen, 0);
         }
 
-        *param0->unk_00 |= (0x1 << 4);
-        param0->unk_08 = 2;
-        v0 = 48;
-        v1 = 64;
+        *bannerSettings->pageBinary |= SCREEN_CRY;
+        bannerSettings->page = POKEDEX_PAGES_CRY;
+        x = 48;
+        y = 64;
         break;
-    case 3:
-        if (PokedexSort_CurrentCaughtStatus(param0->unk_04) == 2) {
-            *param0->unk_00 |= (0x1 << 5);
-            param0->unk_08 = 3;
+    case POKEDEX_PAGES_SIZE:
+        if (PokedexSort_CurrentCaughtStatus(bannerSettings->pokedexSortData) == CS_CAUGHT) {
+            *bannerSettings->pageBinary |= SCREEN_SIZE;
+            bannerSettings->page = POKEDEX_PAGES_SIZE;
         } else {
-            v2 = 0;
+            pageAccessible = FALSE;
         }
         break;
-    case 4:
-        if (PokedexSort_CanDetectForms(param0->unk_04) == 1) {
-            *param0->unk_00 |= (0x1 << 8);
-            param0->unk_08 = 4;
+    case POKEDEX_PAGES_FORMS:
+        if (PokedexSort_CanDetectForms(bannerSettings->pokedexSortData) == TRUE) {
+            *bannerSettings->pageBinary |= SCREEN_FORMS;
+            bannerSettings->page = POKEDEX_PAGES_FORMS;
         } else {
-            v2 = 0;
+            pageAccessible = FALSE;
         }
         break;
     default:
-        GF_ASSERT(0);
+        GF_ASSERT(FALSE);
         break;
     }
 
-    switch (param2) {
-    case 0:
-        if (ov21_021E2EC0(param1)) {
-            param0->unk_10->unk_14 = 2;
-            ov21_021E0CDC(param0->unk_18, 2);
+    switch (oldPage) {
+    case POKEDEX_PAGES_INFO:
+        if (ReturnFalse(newPage)) {
+            bannerSettings->infoSprite->unk_14 = 2;
+            ov21_021E0CDC(bannerSettings->foreignScreen, 2);
         } else {
-            param0->unk_10->unk_14 = 1;
-            ov21_021E0CDC(param0->unk_18, 1);
+            bannerSettings->infoSprite->unk_14 = 1;
+            ov21_021E0CDC(bannerSettings->foreignScreen, 1);
         }
 
-        param0->unk_10->unk_08 = v0;
-        param0->unk_10->unk_0C = v1;
-        ov21_021E0CD4(param0->unk_18, v0, v1);
+        bannerSettings->infoSprite->x = x;
+        bannerSettings->infoSprite->y = y;
+        ov21_021E0CD4(bannerSettings->foreignScreen, x, y);
         break;
-    case 1:
-        if (ov21_021E2EC0(param1)) {
-            ov21_021DCA4C(param0->unk_1C, 1);
-            ov21_021DCA54(param0->unk_1C, 1);
+    case POKEDEX_PAGES_AREA:
+        if (ReturnFalse(newPage)) {
+            ov21_021DCA4C(bannerSettings->areaScreen, 1);
+            ov21_021DCA54(bannerSettings->areaScreen, 1);
         } else {
-            ov21_021DCA4C(param0->unk_1C, 0);
+            ov21_021DCA4C(bannerSettings->areaScreen, 0);
         }
 
-        ov21_021DCA44(param0->unk_1C, v0, v1);
+        ov21_021DCA44(bannerSettings->areaScreen, x, y);
         break;
-    case 2:
-        if (ov21_021E2EC0(param1)) {
-            ov21_021E4070(param0->unk_20, 1);
-            ov21_021E4078(param0->unk_20, 1);
+    case POKEDEX_PAGES_CRY:
+        if (ReturnFalse(newPage)) {
+            ov21_021E4070(bannerSettings->cryScreen, 1);
+            ov21_021E4078(bannerSettings->cryScreen, 1);
         } else {
-            ov21_021E4070(param0->unk_20, 0);
+            ov21_021E4070(bannerSettings->cryScreen, 0);
         }
 
-        ov21_021E4068(param0->unk_20, v0, v1);
+        ov21_021E4068(bannerSettings->cryScreen, x, y);
         break;
-    case 3:
+    case POKEDEX_PAGES_SIZE:
         break;
-    case 4:
+    case POKEDEX_PAGES_FORMS:
         break;
     default:
-        GF_ASSERT(0);
+        GF_ASSERT(FALSE);
         break;
     }
 
-    return v2;
+    return pageAccessible;
 }
 
-static void ov21_021E3080(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1, const UnkStruct_ov21_021E2BA8 *param2, int param3)
+static void DisplayBanner(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData, const BannerSettings *bannerSettings, int heapID)
 {
-    ov21_021E30E4(param0, param2, param3);
-    ov21_021E3178(param0, param1, param3);
-    ov21_021E3268(param0, param1, param3);
-    ov21_021E3270(param0, param1, param3);
-    ov21_021E3FC0(param1, 0, 1);
+    InitTopScreenGraphics(pokedexGraphicData, bannerSettings, heapID);
+    SetPageBannerSprites(pokedexGraphicData, pageBannerData, heapID);
+    dummy3(pokedexGraphicData, pageBannerData, heapID);
+    DisplayPageName(pokedexGraphicData, pageBannerData, heapID);
+    UpdateBannerDisplay(pageBannerData, POKEDEX_PAGES_INFO, POKEDEX_PAGES_AREA);
 }
 
-static void ov21_021E30BC(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1)
+static void FreeBanner(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData)
 {
-    ov21_021E326C(param1);
-    ov21_021E3224(param0, param1);
-    ov21_021E3304(param1);
+    dummy4(pageBannerData);
+    FreeBannerGraphics(pokedexGraphicData, pageBannerData);
+    FreeBannerTextMan(pageBannerData);
 
-    Bg_ClearTilemap(param0->unk_00->bgConfig, 2);
+    Bg_ClearTilemap((*pokedexGraphicData)->bgConfig, 2);
 }
 
-static void ov21_021E30E4(UnkStruct_ov21_021E2BBC *param0, const UnkStruct_ov21_021E2BA8 *param1, int param2)
+static void InitTopScreenGraphics(PokedexGraphicData **pokedexGraphicData, const BannerSettings *bannerSettings, int heapID)
 {
-    void *v0;
-    NNSG2dScreenData *v1;
+    NNSG2dScreenData *ppScrData;
 
-    ov21_021D276C(param0->unk_00, 6, 0, 0, 0, param2);
+    Pokedex_LoadGraphicNarcPaletteData(*pokedexGraphicData, 6, 0, 0, 0, heapID);
 
-    if (PokedexSort_IsNationalDex(param1->unk_04) == 1) {
-        ov21_021D276C(param0->unk_00, 24, 0, 0, 32, param2);
+    if (PokedexSort_IsNationalDex(bannerSettings->pokedexSortData) == TRUE) {
+        Pokedex_LoadGraphicNarcPaletteData(*pokedexGraphicData, 24, 0, 0, 32, heapID);
     }
 
-    ov21_021D2724(param0->unk_00, 33, param0->unk_00->bgConfig, 2, 0, 0, 1, param2);
+    Pokedex_LoadGraphicNarcCharacterData(*pokedexGraphicData, 33, (*pokedexGraphicData)->bgConfig, 2, 0, 0, TRUE, heapID);
 
-    v0 = ov21_021D27B8(param0->unk_00, 57, 1, &v1, param2);
+    void *pokedexGraphic = Pokedex_GetGraphicNarcScreenData(*pokedexGraphicData, 57, 1, &ppScrData, heapID);
 
-    Bg_LoadToTilemapRect(param0->unk_00->bgConfig, 2, v1->rawData, 0, 0, v1->screenWidth / 8, v1->screenHeight / 8);
-    Heap_FreeToHeap(v0);
-    Bg_ScheduleTilemapTransfer(param0->unk_00->bgConfig, 2);
+    Bg_LoadToTilemapRect((*pokedexGraphicData)->bgConfig, 2, ppScrData->rawData, 0, 0, ppScrData->screenWidth / 8, ppScrData->screenHeight / 8);
+    Heap_FreeToHeap(pokedexGraphic);
+    Bg_ScheduleTilemapTransfer((*pokedexGraphicData)->bgConfig, 2);
 }
 
-static void ov21_021E3178(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1, int param2)
+static void SetPageBannerSprites(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData, int heapID)
 {
-    PokedexGraphicData *v0 = param0->unk_00;
-    NARC *v1 = ov21_021D26E0(param0->unk_00);
+    PokedexGraphicData *graphicData = *pokedexGraphicData;
+    NARC *pokedexGraphicsNARC = Pokedex_PokedexGraphicsNARC(*pokedexGraphicData);
 
-    param1->unk_18[0] = SpriteResourceCollection_AddTilesFrom(v0->spriteResourceCollection[0], v1, 87, 1, 87 + 2000, NNS_G2D_VRAM_TYPE_2DMAIN, param2);
+    pageBannerData->spriteResource[SPRITE_RESOURCE_CHAR] = SpriteResourceCollection_AddTilesFrom(graphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], pokedexGraphicsNARC, 87, 1, 87 + 2000, NNS_G2D_VRAM_TYPE_2DMAIN, heapID);
 
-    SpriteTransfer_RequestCharAtEnd(param1->unk_18[0]);
-    SpriteResource_ReleaseData(param1->unk_18[0]);
+    SpriteTransfer_RequestCharAtEnd(pageBannerData->spriteResource[SPRITE_RESOURCE_CHAR]);
+    SpriteResource_ReleaseData(pageBannerData->spriteResource[SPRITE_RESOURCE_CHAR]);
 
-    param1->unk_18[1] = SpriteResourceCollection_AddPaletteFrom(v0->spriteResourceCollection[1], v1, 12, 0, 12 + 2000, NNS_G2D_VRAM_TYPE_2DMAIN, 1, param2);
+    pageBannerData->spriteResource[SPRITE_RESOURCE_PLTT] = SpriteResourceCollection_AddPaletteFrom(graphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], pokedexGraphicsNARC, 12, 0, 12 + 2000, NNS_G2D_VRAM_TYPE_2DMAIN, 1, heapID);
 
-    SpriteTransfer_RequestPlttFreeSpace(param1->unk_18[1]);
-    SpriteResource_ReleaseData(param1->unk_18[1]);
+    SpriteTransfer_RequestPlttFreeSpace(pageBannerData->spriteResource[SPRITE_RESOURCE_PLTT]);
+    SpriteResource_ReleaseData(pageBannerData->spriteResource[SPRITE_RESOURCE_PLTT]);
 
-    param1->unk_18[2] = SpriteResourceCollection_AddFrom(v0->spriteResourceCollection[2], v1, 85, 1, 85 + 2000, 2, param2);
-    param1->unk_18[3] = SpriteResourceCollection_AddFrom(v0->spriteResourceCollection[3], v1, 86, 1, 86 + 2000, 3, param2);
+    pageBannerData->spriteResource[SPRITE_RESOURCE_CELL] = SpriteResourceCollection_AddFrom(graphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], pokedexGraphicsNARC, 85, 1, 85 + 2000, SPRITE_RESOURCE_CELL, heapID);
+    pageBannerData->spriteResource[SPRITE_RESOURCE_ANIM] = SpriteResourceCollection_AddFrom(graphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], pokedexGraphicsNARC, 86, 1, 86 + 2000, SPRITE_RESOURCE_ANIM, heapID);
 }
 
-static void ov21_021E3224(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1)
+static void FreeBannerGraphics(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData)
 {
-    PokedexGraphicData *v0 = param0->unk_00;
+    PokedexGraphicData *graphicData = *pokedexGraphicData;
 
-    SpriteTransfer_ResetCharTransfer(param1->unk_18[0]);
-    SpriteTransfer_ResetPlttTransfer(param1->unk_18[1]);
+    SpriteTransfer_ResetCharTransfer(pageBannerData->spriteResource[SPRITE_RESOURCE_CHAR]);
+    SpriteTransfer_ResetPlttTransfer(pageBannerData->spriteResource[SPRITE_RESOURCE_PLTT]);
 
-    SpriteResourceCollection_Remove(v0->spriteResourceCollection[0], param1->unk_18[0]);
-    SpriteResourceCollection_Remove(v0->spriteResourceCollection[1], param1->unk_18[1]);
-    SpriteResourceCollection_Remove(v0->spriteResourceCollection[2], param1->unk_18[2]);
-    SpriteResourceCollection_Remove(v0->spriteResourceCollection[3], param1->unk_18[3]);
+    SpriteResourceCollection_Remove(graphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], pageBannerData->spriteResource[SPRITE_RESOURCE_CHAR]);
+    SpriteResourceCollection_Remove(graphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], pageBannerData->spriteResource[SPRITE_RESOURCE_PLTT]);
+    SpriteResourceCollection_Remove(graphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], pageBannerData->spriteResource[SPRITE_RESOURCE_CELL]);
+    SpriteResourceCollection_Remove(graphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], pageBannerData->spriteResource[SPRITE_RESOURCE_ANIM]);
 }
 
-static void ov21_021E3268(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1, int param2)
+static void dummy3(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData, int heapID)
 {
     return;
 }
 
-static void ov21_021E326C(UnkStruct_ov21_021E326C *param0)
+static void dummy4(PageBannerData *pageBannerData)
 {
     return;
 }
 
-static void ov21_021E3270(UnkStruct_ov21_021E2BBC *param0, UnkStruct_ov21_021E326C *param1, int param2)
+static void DisplayPageName(PokedexGraphicData **pokedexGraphicData, PageBannerData *pageBannerData, int heapID)
 {
-    Window *v0;
-    UnkStruct_ov21_021D4CB8 v1;
-    PokedexGraphicData *v2 = param0->unk_00;
-    int v3;
-    int v4;
+    Window *window;
+    PokedexDisplayBox displayBox;
+    PokedexGraphicData *graphicData = *pokedexGraphicData;
+    int plttOffset;
 
-    v1.unk_00 = v2->unk_14C;
-    v1.unk_08 = SpriteTransfer_GetPaletteProxy(param1->unk_18[1], NULL);
-    v1.unk_10 = 16;
-    v1.unk_14 = 0;
-    v1.unk_18 = 0;
-    v1.unk_1C = 0;
-    v1.unk_0C = NULL;
-    v1.unk_20 = NNS_G2D_VRAM_TYPE_2DMAIN;
-    v1.heapID = param2;
+    displayBox.unk_00 = graphicData->unk_14C;
+    displayBox.paletteProxy = SpriteTransfer_GetPaletteProxy(pageBannerData->spriteResource[SPRITE_RESOURCE_PLTT], NULL);
+    displayBox.x = 16;
+    displayBox.y = 0;
+    displayBox.unk_18 = 0;
+    displayBox.unk_1C = 0;
+    displayBox.sprite = NULL;
+    displayBox.vramType = NNS_G2D_VRAM_TYPE_2DMAIN;
+    displayBox.heapID = heapID;
 
-    v3 = PlttTransfer_GetPlttOffset(v1.unk_08, NNS_G2D_VRAM_TYPE_2DMAIN);
+    plttOffset = PlttTransfer_GetPlttOffset(displayBox.paletteProxy, NNS_G2D_VRAM_TYPE_2DMAIN);
 
-    for (v4 = 0; v4 < 5; v4++) {
-        v0 = ov21_021D4D6C(v2->unk_14C, 8, 2);
+    for (int page = 0; page < MAX_POKEDEX_PAGES; page++) {
+        window = Pokedex_NewWindow(graphicData->unk_14C, 8, 2);
 
-        Pokedex_DisplayMessage(v2->unk_14C, v0, TEXT_BANK_POKEDEX, pl_msg_pokedex_info + v4, 0, 0);
+        Pokedex_DisplayMessage(graphicData->unk_14C, window, TEXT_BANK_POKEDEX, pl_msg_pokedex_info + page, 0, 0);
 
-        v1.unk_04 = v0;
-        param1->unk_04[v4] = ov21_021D4CA0(&v1);
+        displayBox.window = window;
+        pageBannerData->bannerTextMan[page] = ov21_021D4CA0(&displayBox);
 
-        sub_02012A60(param1->unk_04[v4]->unk_00, v3);
-        sub_020129D0(param1->unk_04[v4]->unk_00, 0);
+        sub_02012A60(pageBannerData->bannerTextMan[page]->fontOAM, plttOffset);
+        sub_020129D0(pageBannerData->bannerTextMan[page]->fontOAM, FALSE);
 
-        ov21_021D4DA0(v0);
+        Pokedex_FreeWindow(window);
     }
 }
 
-static void ov21_021E3304(UnkStruct_ov21_021E326C *param0)
+static void FreeBannerTextMan(PageBannerData *pageBannerData)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 5; v0++) {
-        ov21_021D4D1C(param0->unk_04[v0]);
+    for (int page = 0; page < MAX_POKEDEX_PAGES; page++) {
+        ov21_021D4D1C(pageBannerData->bannerTextMan[page]);
     }
 }
 
-static void ov21_021E331C(UnkStruct_ov21_021E326C *param0, int param1)
+static void dummy5(PageBannerData *pageBannerData, int param1)
 {
     return;
 }
 
-static void ov21_021E3320(UnkStruct_ov21_021E2BA8 *param0)
+static void ov21_021E3320(BannerSettings *bannerSettings)
 {
-    param0->unk_28 = 1;
-    param0->unk_10->unk_14 = 1;
+    bannerSettings->unk_28 = 1;
+    bannerSettings->infoSprite->unk_14 = 1;
 }
 
-void ov21_021E332C(UnkStruct_ov21_021E68F4 *param0, PokedexApp *param1, enum HeapId heapID)
+void PokedexEntry_PanelTransitions(PokedexScreenManager *pokedexScreenMan, PokedexApp *param1, enum HeapId heapID)
 {
-    UnkStruct_ov21_021E342C *v0;
-    UnkStruct_ov21_021E3440 *v1;
-    UnkStruct_ov21_021D4660 *v2;
+    PageTransitionData *pageTransitionData;
+    PokedexGraphicData **pokedexGraphicData;
+    PokedexScreenState *pokedexScreenState;
 
-    v0 = ov21_021E33C4(heapID, param1);
-    v1 = ov21_021E3400(heapID, param1);
-    v2 = ov21_021E3428(heapID, param1);
+    pageTransitionData = NewPageTransitionData(heapID, param1);
+    pokedexGraphicData = GetGraphicData2(heapID, param1);
+    pokedexScreenState = NullScreenState(heapID, param1);
 
-    param0->unk_00 = v0;
-    param0->unk_04 = v1;
-    param0->unk_20 = v2;
-    param0->unk_24 = ov21_021E3458();
+    pokedexScreenMan->operationalData = pageTransitionData;
+    pokedexScreenMan->graphicData = pokedexGraphicData;
+    pokedexScreenMan->pokedexScreenState = pokedexScreenState;
+    pokedexScreenMan->numScreenStates = NumPanelStates();
 
-    param0->unk_08[0] = ov21_021E345C;
-    param0->unk_08[1] = ov21_021E34AC;
-    param0->unk_08[2] = ov21_021E3520;
-    param0->unk_14[0] = ov21_021E3540;
-    param0->unk_14[1] = ov21_021E35D0;
-    param0->unk_14[2] = ov21_021E3604;
+    pokedexScreenMan->dataTransition[POKEDEX_TRANSITION_IN] = ResetBottomData;
+    pokedexScreenMan->dataTransition[POKEDEX_TRANSITION_UPDATE] = UpdateEntryPage;
+    pokedexScreenMan->dataTransition[POKEDEX_TRANSITION_OUT] = FreeBottomData;
+    pokedexScreenMan->displayTransition[POKEDEX_TRANSITION_IN] = EnterPokedexEntry;
+    pokedexScreenMan->displayTransition[POKEDEX_TRANSITION_UPDATE] = UpdateBottomDisplay;
+    pokedexScreenMan->displayTransition[POKEDEX_TRANSITION_OUT] = ExitPokedexEntry;
 }
 
-void ov21_021E338C(UnkStruct_ov21_021E68F4 *param0)
+void PokedexEntry_FreeTransitionData(PokedexScreenManager *pokedexScreenMan)
 {
-    ov21_021E342C(param0->unk_00);
-    ov21_021E3440(param0->unk_04);
-    ov21_021E3454(param0->unk_20);
+    FreePageTransitionData(pokedexScreenMan->operationalData);
+    FreeGraphicData2(pokedexScreenMan->graphicData);
+    dummy6(pokedexScreenMan->pokedexScreenState);
 }
 
-BOOL ov21_021E33A4(const UnkStruct_ov21_021E68F4 *param0)
+BOOL ov21_021E33A4(const PokedexScreenManager *param0)
 {
-    const UnkStruct_ov21_021E342C *v0 = param0->unk_00;
-    return v0->unk_24;
+    const PageTransitionData *pageTransitionData = param0->operationalData;
+    return pageTransitionData->bottomScreenFade;
 }
 
-BOOL ov21_021E33AC(const UnkStruct_ov21_021E68F4 *param0)
+BOOL ov21_021E33AC(const PokedexScreenManager *param0)
 {
-    const UnkStruct_ov21_021E342C *v0 = param0->unk_00;
-    return v0->unk_28;
+    const PageTransitionData *pageTransitionData = param0->operationalData;
+    return pageTransitionData->bottomScreenInteractible;
 }
 
-void ov21_021E33B4(UnkStruct_ov21_021E68F4 *param0, BOOL param1)
+void ov21_021E33B4(PokedexScreenManager *param0, BOOL cursorOnTarget)
 {
-    UnkStruct_ov21_021E342C *v0 = param0->unk_00;
-    v0->unk_30 = param1;
+    PageTransitionData *pageTransitionData = param0->operationalData;
+    pageTransitionData->cursorOnTarget = cursorOnTarget;
 }
 
-BOOL ov21_021E33BC(const UnkStruct_ov21_021E68F4 *param0)
+BOOL ov21_021E33BC(const PokedexScreenManager *param0)
 {
-    const UnkStruct_ov21_021E342C *v0 = param0->unk_00;
-    return v0->unk_30;
+    const PageTransitionData *pageTransitionData = param0->operationalData;
+    return pageTransitionData->cursorOnTarget;
 }
 
-static UnkStruct_ov21_021E342C *ov21_021E33C4(enum HeapId heapID, PokedexApp *param1)
+static PageTransitionData *NewPageTransitionData(enum HeapId heapID, PokedexApp *pokedexApp)
 {
-    UnkStruct_ov21_021E342C *v0;
-    UnkStruct_ov21_021E68F4 *v1;
+    PageTransitionData *pageTransitionData;
+    PokedexScreenManager *screenMan;
 
-    v0 = Heap_AllocFromHeap(heapID, sizeof(UnkStruct_ov21_021E342C));
+    pageTransitionData = Heap_AllocFromHeap(heapID, sizeof(PageTransitionData));
 
-    GF_ASSERT(v0);
-    memset(v0, 0, sizeof(UnkStruct_ov21_021E342C));
+    GF_ASSERT(pageTransitionData);
+    memset(pageTransitionData, 0, sizeof(PageTransitionData));
 
-    v0->unk_00 = ov21_021D13C8(param1);
-    v1 = ov21_021D1410(param1, 5);
-    v0->unk_04 = v1->unk_00;
-    v0->unk_08 = ov21_021D13EC(param1);
+    pageTransitionData->unk_00 = ov21_021D13C8(pokedexApp);
+    screenMan = PokedexMain_GetTopScreen(pokedexApp, POKEDEX_TOP_CLEAR);
+    pageTransitionData->bannerSettings = screenMan->operationalData;
+    pageTransitionData->sortData = PokedexMain_GetSortData(pokedexApp);
 
-    return v0;
+    return pageTransitionData;
 }
 
-static UnkStruct_ov21_021E3440 *ov21_021E3400(enum HeapId heapID, PokedexApp *param1)
+static PokedexGraphicData **GetGraphicData2(enum HeapId heapID, PokedexApp *pokedexApp)
 {
-    UnkStruct_ov21_021E3440 *v0;
-    UnkStruct_ov21_021E68F4 *v1;
+    PokedexGraphicData **graphicData = Heap_AllocFromHeap(heapID, sizeof(PokedexGraphicData *));
 
-    v0 = Heap_AllocFromHeap(heapID, sizeof(UnkStruct_ov21_021E3440));
+    GF_ASSERT(graphicData);
+    memset(graphicData, 0, sizeof(PokedexGraphicData *));
 
-    GF_ASSERT(v0);
-    memset(v0, 0, sizeof(UnkStruct_ov21_021E3440));
+    *graphicData = PokedexMain_GetGraphicData(pokedexApp);
 
-    v0->unk_00 = ov21_021D13FC(param1);
-
-    return v0;
+    return graphicData;
 }
 
-static UnkStruct_ov21_021D4660 *ov21_021E3428(enum HeapId heapID, PokedexApp *param1)
+static PokedexScreenState *NullScreenState(enum HeapId heapID, PokedexApp *param1)
 {
     return NULL;
 }
 
-static void ov21_021E342C(UnkStruct_ov21_021E342C *param0)
+static void FreePageTransitionData(PageTransitionData *pageTransitionData)
 {
-    GF_ASSERT(param0);
-    Heap_FreeToHeap(param0);
+    GF_ASSERT(pageTransitionData);
+    Heap_FreeToHeap(pageTransitionData);
 }
 
-static void ov21_021E3440(UnkStruct_ov21_021E3440 *param0)
+static void FreeGraphicData2(PokedexGraphicData **graphicData)
 {
-    GF_ASSERT(param0);
-    Heap_FreeToHeap(param0);
+    GF_ASSERT(graphicData);
+    Heap_FreeToHeap(graphicData);
 }
 
-static void ov21_021E3454(UnkStruct_ov21_021D4660 *param0)
+static void dummy6(PokedexScreenState *pokedexScreenState)
 {
     return;
 }
 
-static int ov21_021E3458(void)
+static int NumPanelStates(void)
 {
     return 0;
 }
 
-static int ov21_021E345C(UnkStruct_ov21_021E6A68 *param0, void *param1)
+static int ResetBottomData(PokedexDataManager *param0, void *param1)
 {
-    UnkStruct_ov21_021E342C *v0 = param1;
-    UnkStruct_ov21_021E37B4 *v1 = param0->unk_08;
-    int v2;
+    PageTransitionData *pageTransitionData = param1;
+    PokedexBottomData *pokedexBottomData = param0->pageData;
 
-    v1 = Heap_AllocFromHeap(param0->heapID, sizeof(UnkStruct_ov21_021E37B4));
-    memset(v1, 0, sizeof(UnkStruct_ov21_021E37B4));
+    pokedexBottomData = Heap_AllocFromHeap(param0->heapID, sizeof(PokedexBottomData));
+    memset(pokedexBottomData, 0, sizeof(PokedexBottomData));
 
-    ov21_021E3688(v1, v0, param0->heapID);
-    ov21_021E3C6C(v1, v0, param0->heapID);
-    ov21_021E3E8C(v1, v0);
+    InitHitTable(pokedexBottomData, pageTransitionData, param0->heapID);
+    InitCursorData(pokedexBottomData, pageTransitionData, param0->heapID);
+    CursorToActivePage(pokedexBottomData, pageTransitionData);
 
-    for (v2 = 0; v2 < 6; v2++) {
-        v0->unk_0C[v2] = (3 + 1);
+    for (int button = 0; button < MAX_POKEDEX_BUTTONS; button++) {
+        pageTransitionData->buttonStatus[button] = POKEDEX_BUTTON_INIT;
     }
 
-    param0->unk_08 = v1;
+    param0->pageData = pokedexBottomData;
 
-    return 1;
+    return TRUE;
 }
 
-static int ov21_021E34AC(UnkStruct_ov21_021E6A68 *param0, void *param1)
+static int UpdateEntryPage(PokedexDataManager *param0, void *param1)
 {
-    UnkStruct_ov21_021E342C *v0 = param1;
-    UnkStruct_ov21_021E37B4 *v1 = param0->unk_08;
+    PageTransitionData *pageTransitionData = param1;
+    PokedexBottomData *pokedexBottomData = param0->pageData;
 
-    if (param0->unk_0C == 1) {
-        v0->unk_24 = 0;
-        return 1;
+    if (param0->exit == TRUE) {
+        pageTransitionData->bottomScreenFade = FALSE;
+        return TRUE;
     }
 
-    if (param0->unk_10 == 1) {
-        return 0;
+    if (param0->unchanged == TRUE) {
+        return FALSE;
     }
 
-    if (param0->unk_00 == 0) {
-        v0->unk_24 = 1;
-        v0->unk_04->unk_30 = 0;
-        v0->unk_28 = 1;
-        param0->unk_00++;
+    if (param0->state == 0) {
+        pageTransitionData->bottomScreenFade = TRUE;
+        pageTransitionData->bannerSettings->unk_30 = 0;
+        pageTransitionData->bottomScreenInteractible = TRUE;
+        param0->state++;
     } else {
-        v0->unk_28 = 1;
+        pageTransitionData->bottomScreenInteractible = TRUE;
 
-        ov21_021E3C2C(v0);
-        ov21_021E3EEC(v1, v0);
-        ov21_021E3724(v0);
+        CheckForExit(pageTransitionData);
+        CheckForSpeciesChange(pokedexBottomData, pageTransitionData);
+        DeactivateAllButtons(pageTransitionData);
 
-        if ((ov21_021D3998(v0->unk_08) == 2) && (v0->unk_30 == 0)) {
-            ov21_021E3D48(v1, v0);
+        if ((ov21_021D3998(pageTransitionData->sortData) == 2) && (pageTransitionData->cursorOnTarget == FALSE)) {
+            PressButton(pokedexBottomData, pageTransitionData);
         }
 
-        ov21_021E3734(v1, v0);
+        SetActiveButton(pokedexBottomData, pageTransitionData);
     }
 
-    return 0;
+    return FALSE;
 }
 
-static int ov21_021E3520(UnkStruct_ov21_021E6A68 *param0, void *param1)
+static int FreeBottomData(PokedexDataManager *param0, void *param1)
 {
-    UnkStruct_ov21_021E342C *v0 = param1;
-    UnkStruct_ov21_021E37B4 *v1 = param0->unk_08;
+    PokedexBottomData *pokedexBottomData = param0->pageData;
 
-    ov21_021E37B4(v1);
-    ov21_021E3E74(v1);
+    FreeHitTable(pokedexBottomData);
+    freePanel(pokedexBottomData);
 
-    Heap_FreeToHeap(param0->unk_08);
-    param0->unk_08 = NULL;
+    Heap_FreeToHeap(param0->pageData);
+    param0->pageData = NULL;
 
     return 1;
 }
 
-static int ov21_021E3540(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3)
+static int EnterPokedexEntry(void *data, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3)
 {
-    const UnkStruct_ov21_021E342C *v0 = param2;
-    const UnkStruct_ov21_021E37B4 *v1 = param3->unk_08;
-    UnkStruct_ov21_021E3440 *v2 = param0;
-    UnkStruct_ov21_021E3900 *v3 = param1->unk_08;
+    const PageTransitionData *pageTransitionData = param2;
+    const PokedexBottomData *pokedexBottomData = param3->pageData;
+    PokedexGraphicData **pokedexGraphicData = data;
+    PageButtonGraphics *pageButtonGraphics = graphicsMan->pageGraphics;
 
-    switch (param1->unk_00) {
+    switch (graphicsMan->state) {
     case 0:
-        param1->unk_08 = Heap_AllocFromHeap(param1->heapID, sizeof(UnkStruct_ov21_021E3900));
-        memset(param1->unk_08, 0, sizeof(UnkStruct_ov21_021E3900));
-        param1->unk_00++;
+        graphicsMan->pageGraphics = Heap_AllocFromHeap(graphicsMan->heapID, sizeof(PageButtonGraphics));
+        memset(graphicsMan->pageGraphics, 0, sizeof(PageButtonGraphics));
+        graphicsMan->state++;
         break;
     case 1:
-        ov21_021E3900(v3, v2, v0, param1->heapID);
-        param1->unk_00++;
+        DisplayBottomScreen(pageButtonGraphics, pokedexGraphicData, pageTransitionData, graphicsMan->heapID);
+        graphicsMan->state++;
         break;
     case 2:
         BrightnessController_StartTransition(4, 0, -16, (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_OBJ | GX_BLEND_PLANEMASK_BD), BRIGHTNESS_SUB_SCREEN);
-        ov21_021E3F2C(v2, v1, v0);
-        param1->unk_00++;
+        CursorToCurrentButton(pokedexGraphicData, pokedexBottomData, pageTransitionData);
+        graphicsMan->state++;
         break;
     case 3:
         if (BrightnessController_IsTransitionComplete(BRIGHTNESS_SUB_SCREEN)) {
-            param1->unk_00++;
+            graphicsMan->state++;
         }
         break;
     case 4:
@@ -989,49 +1008,46 @@ static int ov21_021E3540(void *param0, UnkStruct_ov21_021E6B20 *param1, const vo
     return 0;
 }
 
-static int ov21_021E35D0(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3)
+static int UpdateBottomDisplay(void *data, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3)
 {
-    const UnkStruct_ov21_021E342C *v0 = param2;
-    const UnkStruct_ov21_021E37B4 *v1 = param3->unk_08;
-    UnkStruct_ov21_021E3440 *v2 = param0;
-    UnkStruct_ov21_021E3900 *v3 = param1->unk_08;
-    int v4;
+    const PageTransitionData *pageTransitionData = param2;
+    const PokedexBottomData *pokedexBottomData = param3->pageData;
+    PokedexGraphicData **pokedexGraphicData = data;
+    PageButtonGraphics *pageButtonGraphics = graphicsMan->pageGraphics;
 
-    for (v4 = 0; v4 < 6; v4++) {
-        ov21_021D144C(v3->unk_00[v4], v0->unk_0C[v4]);
+    for (int button = 0; button < MAX_POKEDEX_BUTTONS; button++) {
+        PokedexMain_ButtonAnimation(pageButtonGraphics->sprite[button], pageTransitionData->buttonStatus[button]);
     }
 
-    ov21_021E3F48(v2, v1, v0);
+    UpdateCursor(pokedexGraphicData, pokedexBottomData, pageTransitionData);
 
-    return 0;
+    return FALSE;
 }
 
-static int ov21_021E3604(void *param0, UnkStruct_ov21_021E6B20 *param1, const void *param2, const UnkStruct_ov21_021E6A68 *param3)
+static int ExitPokedexEntry(void *data, PokedexGraphicsManager *graphicsMan, const void *param2, const PokedexDataManager *param3)
 {
-    const UnkStruct_ov21_021E342C *v0 = param2;
-    const UnkStruct_ov21_021E37B4 *v1 = param3->unk_08;
-    UnkStruct_ov21_021E3440 *v2 = param0;
-    UnkStruct_ov21_021E3900 *v3 = param1->unk_08;
+    PokedexGraphicData **pokedexGraphicData = data;
+    PageButtonGraphics *pageButtonGraphics = graphicsMan->pageGraphics;
 
-    switch (param1->unk_00) {
+    switch (graphicsMan->state) {
     case 0:
         BrightnessController_StartTransition(4, -16, 0, (GX_BLEND_PLANEMASK_BG0 | GX_BLEND_PLANEMASK_BG1 | GX_BLEND_PLANEMASK_BG2 | GX_BLEND_PLANEMASK_BG3 | GX_BLEND_PLANEMASK_OBJ | GX_BLEND_PLANEMASK_BD), BRIGHTNESS_SUB_SCREEN);
-        param1->unk_00++;
+        graphicsMan->state++;
         break;
     case 1:
         if (BrightnessController_IsTransitionComplete(BRIGHTNESS_SUB_SCREEN)) {
-            param1->unk_00++;
+            graphicsMan->state++;
         }
         break;
     case 2:
-        ov21_021E393C(v3, v2);
-        ov21_021D2584(&v2->unk_00->unk_1E0, 0);
-        param1->unk_00++;
+        FreePageButtons(pageButtonGraphics, pokedexGraphicData);
+        PokedexCursor_SetCursorVisbility(&(*pokedexGraphicData)->cursor, FALSE);
+        graphicsMan->state++;
         break;
     case 3:
-        Heap_FreeToHeap(param1->unk_08);
-        param1->unk_08 = NULL;
-        param1->unk_00++;
+        Heap_FreeToHeap(graphicsMan->pageGraphics);
+        graphicsMan->pageGraphics = NULL;
+        graphicsMan->state++;
         break;
     case 4:
         return 1;
@@ -1042,133 +1058,131 @@ static int ov21_021E3604(void *param0, UnkStruct_ov21_021E6B20 *param1, const vo
     return 0;
 }
 
-static void ov21_021E3688(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1, enum HeapId heapID)
+static void InitHitTable(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData, enum HeapId heapID)
 {
-    param0->unk_04 = Heap_AllocFromHeap(heapID, sizeof(TouchScreenHitTable) * 6);
+    pokedexBottomData->touchScreenHitTable = Heap_AllocFromHeap(heapID, sizeof(TouchScreenHitTable) * MAX_POKEDEX_BUTTONS);
 
-    ov21_021D154C(&param0->unk_04[0], 24 - (32 / 2), 24 + (32 / 2), 28 - (40 / 2), 28 + (40 / 2));
-    ov21_021D154C(&param0->unk_04[5], 24 - (32 / 2), 24 + (32 / 2), 228 - (40 / 2), 228 + (40 / 2));
-    ov21_021D154C(&param0->unk_04[1], 24 - (32 / 2), 24 + (32 / 2), 68 - (40 / 2), 68 + (40 / 2));
-    ov21_021D154C(&param0->unk_04[2], 24 - (32 / 2), 24 + (32 / 2), 108 - (40 / 2), 108 + (40 / 2));
-    ov21_021D154C(&param0->unk_04[3], 24 - (32 / 2), 24 + (32 / 2), 148 - (40 / 2), 148 + (40 / 2));
-    ov21_021D154C(&param0->unk_04[4], 24 - (32 / 2), 24 + (32 / 2), 188 - (40 / 2), 188 + (40 / 2));
+    PokedexMain_SetHitTableBoundaries(&pokedexBottomData->touchScreenHitTable[POKEDEX_BUTTONS_INFO], BUTTON_Y - (BUTTON_HITBOX_HEIGHT / 2), BUTTON_Y + (BUTTON_HITBOX_HEIGHT / 2), BUTTON_INFO_X - (BUTTON_HITBOX_WIDTH / 2), BUTTON_INFO_X + (BUTTON_HITBOX_WIDTH / 2));
+    PokedexMain_SetHitTableBoundaries(&pokedexBottomData->touchScreenHitTable[POKEDEX_BUTTONS_EXIT], BUTTON_Y - (BUTTON_HITBOX_HEIGHT / 2), BUTTON_Y + (BUTTON_HITBOX_HEIGHT / 2), BUTTON_EXIT_X - (BUTTON_HITBOX_WIDTH / 2), BUTTON_EXIT_X + (BUTTON_HITBOX_WIDTH / 2));
+    PokedexMain_SetHitTableBoundaries(&pokedexBottomData->touchScreenHitTable[POKEDEX_BUTTONS_AREA], BUTTON_Y - (BUTTON_HITBOX_HEIGHT / 2), BUTTON_Y + (BUTTON_HITBOX_HEIGHT / 2), BUTTON_AREA_X - (BUTTON_HITBOX_WIDTH / 2), BUTTON_AREA_X + (BUTTON_HITBOX_WIDTH / 2));
+    PokedexMain_SetHitTableBoundaries(&pokedexBottomData->touchScreenHitTable[POKEDEX_BUTTONS_CRY], BUTTON_Y - (BUTTON_HITBOX_HEIGHT / 2), BUTTON_Y + (BUTTON_HITBOX_HEIGHT / 2), BUTTON_CRY_X - (BUTTON_HITBOX_WIDTH / 2), BUTTON_CRY_X + (BUTTON_HITBOX_WIDTH / 2));
+    PokedexMain_SetHitTableBoundaries(&pokedexBottomData->touchScreenHitTable[POKEDEX_BUTTONS_SIZE], BUTTON_Y - (BUTTON_HITBOX_HEIGHT / 2), BUTTON_Y + (BUTTON_HITBOX_HEIGHT / 2), BUTTON_SIZE_X - (BUTTON_HITBOX_WIDTH / 2), BUTTON_SIZE_X + (BUTTON_HITBOX_WIDTH / 2));
+    PokedexMain_SetHitTableBoundaries(&pokedexBottomData->touchScreenHitTable[POKEDEX_BUTTONS_FORMS], BUTTON_Y - (BUTTON_HITBOX_HEIGHT / 2), BUTTON_Y + (BUTTON_HITBOX_HEIGHT / 2), BUTTON_FORMS_X - (BUTTON_HITBOX_WIDTH / 2), BUTTON_FORMS_X + (BUTTON_HITBOX_WIDTH / 2));
 
-    param0->unk_08.unk_00 = param1;
-    param0->unk_08.unk_04 = param0;
-    param0->unk_00 = sub_02023FCC(param0->unk_04, 6, ov21_021E37CC, &param0->unk_08, heapID);
+    pokedexBottomData->unk_08.unk_00 = pageTransitionData;
+    pokedexBottomData->unk_08.unk_04 = pokedexBottomData;
+    pokedexBottomData->unk_00 = sub_02023FCC(pokedexBottomData->touchScreenHitTable, MAX_POKEDEX_BUTTONS, ButtonEffects, &pokedexBottomData->unk_08, heapID);
 }
 
-static void ov21_021E3724(UnkStruct_ov21_021E342C *param0)
+static void DeactivateAllButtons(PageTransitionData *pageTransitionData)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 6; v0++) {
-        param0->unk_0C[v0] = 3;
+    for (int button = 0; button < MAX_POKEDEX_BUTTONS; button++) {
+        pageTransitionData->buttonStatus[button] = POKEDEX_BUTTON_DEACTIVE;
     }
 }
 
-static void ov21_021E3734(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1)
+static void SetActiveButton(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData)
 {
-    if (param1->unk_2C == 0) {
-        sub_0202404C(param0->unk_00);
+    if (pageTransitionData->exiting == FALSE) {
+        sub_0202404C(pokedexBottomData->unk_00);
     }
 
-    if (param1->unk_2C) {
-        if (param1->unk_0C[5] != 2) {
-            param1->unk_0C[5] = 1;
+    if (pageTransitionData->exiting) {
+        if (pageTransitionData->buttonStatus[POKEDEX_BUTTONS_EXIT] != POKEDEX_BUTTON_PRESSED) {
+            pageTransitionData->buttonStatus[POKEDEX_BUTTONS_EXIT] = POKEDEX_BUTTON_ACTIVE;
         }
     }
 
-    switch (param1->unk_04->unk_08) {
-    case 0:
-        if (param1->unk_0C[0] != 2) {
-            param1->unk_0C[0] = 1;
+    switch (pageTransitionData->bannerSettings->page) {
+    case POKEDEX_PAGES_INFO:
+        if (pageTransitionData->buttonStatus[POKEDEX_BUTTONS_INFO] != POKEDEX_BUTTON_PRESSED) {
+            pageTransitionData->buttonStatus[POKEDEX_BUTTONS_INFO] = POKEDEX_BUTTON_ACTIVE;
         }
         break;
-    case 1:
-        if (param1->unk_0C[1] != 2) {
-            param1->unk_0C[1] = 1;
+    case POKEDEX_PAGES_AREA:
+        if (pageTransitionData->buttonStatus[POKEDEX_BUTTONS_AREA] != POKEDEX_BUTTON_PRESSED) {
+            pageTransitionData->buttonStatus[POKEDEX_BUTTONS_AREA] = POKEDEX_BUTTON_ACTIVE;
         }
         break;
-    case 2:
-        if (param1->unk_0C[2] != 2) {
-            param1->unk_0C[2] = 1;
+    case POKEDEX_PAGES_CRY:
+        if (pageTransitionData->buttonStatus[POKEDEX_BUTTONS_CRY] != POKEDEX_BUTTON_PRESSED) {
+            pageTransitionData->buttonStatus[POKEDEX_BUTTONS_CRY] = POKEDEX_BUTTON_ACTIVE;
         }
         break;
-    case 3:
-        if (param1->unk_0C[3] != 2) {
-            param1->unk_0C[3] = 1;
+    case POKEDEX_PAGES_SIZE:
+        if (pageTransitionData->buttonStatus[POKEDEX_BUTTONS_SIZE] != POKEDEX_BUTTON_PRESSED) {
+            pageTransitionData->buttonStatus[POKEDEX_BUTTONS_SIZE] = POKEDEX_BUTTON_ACTIVE;
         }
         break;
-    case 4:
-        if (param1->unk_0C[4] != 2) {
-            param1->unk_0C[4] = 1;
+    case POKEDEX_PAGES_FORMS:
+        if (pageTransitionData->buttonStatus[POKEDEX_BUTTONS_FORMS] != POKEDEX_BUTTON_PRESSED) {
+            pageTransitionData->buttonStatus[POKEDEX_BUTTONS_FORMS] = POKEDEX_BUTTON_ACTIVE;
         }
         break;
     default:
-        GF_ASSERT(0);
+        GF_ASSERT(FALSE);
         break;
     }
 }
 
-static void ov21_021E37B4(UnkStruct_ov21_021E37B4 *param0)
+static void FreeHitTable(PokedexBottomData *pokedexBottomData)
 {
-    sub_02024034(param0->unk_00);
-    Heap_FreeToHeap(param0->unk_04);
-    param0->unk_04 = NULL;
+    sub_02024034(pokedexBottomData->unk_00);
+    Heap_FreeToHeap(pokedexBottomData->touchScreenHitTable);
+    pokedexBottomData->touchScreenHitTable = NULL;
 }
 
-static void ov21_021E37CC(u32 param0, u32 param1, void *param2)
+static void ButtonEffects(u32 button, u32 buttonStatus, void *data)
 {
-    UnkStruct_ov21_021E37CC *v0 = param2;
-    UnkStruct_ov21_021E342C *v1 = v0->unk_00;
-    UnkStruct_ov21_021E37B4 *v2 = v0->unk_04;
-    UnkStruct_ov21_021E2BA8 *v3 = v1->unk_04;
+    UnkStruct_ov21_021E37CC *v0 = data;
+    PageTransitionData *pageTransitionData = v0->unk_00;
+    PokedexBottomData *v2 = v0->unk_04;
+    BannerSettings *bannerSettings = pageTransitionData->bannerSettings;
 
-    v1->unk_0C[param0] = param1;
+    pageTransitionData->buttonStatus[button] = buttonStatus;
 
-    switch (param1) {
-    case 0:
+    switch (buttonStatus) {
+    case POKEDEX_BUTTON_DEFAULT:
         v2->unk_10 = 0;
         break;
-    case 2:
-        ov21_021D4F20(v2->unk_14, 2, param0);
+    case POKEDEX_BUTTON_PRESSED:
+        PokedexPanel_Move(v2->pokedexPanelData, PANEL_MOVEMENT_COL, button);
 
-        switch (param0) {
-        case 5:
-            ov21_021E2E00(v3);
-            Sound_PlayEffect(1501);
+        switch (button) {
+        case POKEDEX_BUTTONS_EXIT:
+            ExitEntry(bannerSettings);
+            Sound_PlayEffect(SEQ_SE_DP_DECIDE);
             break;
-        case 0:
-            if (v3->unk_08 != 0) {
-                ov21_021E3C18(v1, 0, v3->unk_08);
-                ov21_021E3E8C(v2, v1);
-                Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_INFO:
+            if (bannerSettings->page != POKEDEX_PAGES_INFO) {
+                GoToPage(pageTransitionData, POKEDEX_PAGES_INFO, bannerSettings->page);
+                CursorToActivePage(v2, pageTransitionData);
+                Sound_PlayEffect(SEQ_SE_DP_DENSI06);
             }
             break;
-        case 1:
-            if (v3->unk_08 != 1) {
-                ov21_021E3C18(v1, 1, v3->unk_08);
-                ov21_021E3E8C(v2, v1);
-                Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_AREA:
+            if (bannerSettings->page != POKEDEX_PAGES_AREA) {
+                GoToPage(pageTransitionData, POKEDEX_PAGES_AREA, bannerSettings->page);
+                CursorToActivePage(v2, pageTransitionData);
+                Sound_PlayEffect(SEQ_SE_DP_DENSI06);
             }
             break;
-        case 2:
-            if (v3->unk_08 != 2) {
-                ov21_021E3C18(v1, 2, v3->unk_08);
-                ov21_021E3E8C(v2, v1);
-                Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_CRY:
+            if (bannerSettings->page != POKEDEX_PAGES_CRY) {
+                GoToPage(pageTransitionData, POKEDEX_PAGES_CRY, bannerSettings->page);
+                CursorToActivePage(v2, pageTransitionData);
+                Sound_PlayEffect(SEQ_SE_DP_DENSI06);
             }
             break;
-        case 3:
-            if (v3->unk_08 != 3) {
-                if (ov21_021E3C18(v1, 3, v3->unk_08)) {
-                    ov21_021E3E8C(v2, v1);
-                    Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_SIZE:
+            if (bannerSettings->page != POKEDEX_PAGES_SIZE) {
+                if (GoToPage(pageTransitionData, POKEDEX_PAGES_SIZE, bannerSettings->page)) {
+                    CursorToActivePage(v2, pageTransitionData);
+                    Sound_PlayEffect(SEQ_SE_DP_DENSI06);
                 } else {
                     if (v2->unk_10 == 0) {
-                        if (v3->unk_08 != 2) {
-                            Sound_PlayEffect(1501);
+                        if (bannerSettings->page != POKEDEX_PAGES_CRY) {
+                            Sound_PlayEffect(SEQ_SE_DP_DECIDE);
                         }
 
                         v2->unk_10 = 1;
@@ -1176,16 +1190,16 @@ static void ov21_021E37CC(u32 param0, u32 param1, void *param2)
                 }
             }
             break;
-        case 4:
-            if (v3->unk_08 != 4) {
-                if (ov21_021E3C18(v1, 4, v3->unk_08)) {
-                    ov21_021E3E8C(v2, v1);
-                    Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_FORMS:
+            if (bannerSettings->page != POKEDEX_PAGES_FORMS) {
+                if (GoToPage(pageTransitionData, POKEDEX_PAGES_FORMS, bannerSettings->page)) {
+                    CursorToActivePage(v2, pageTransitionData);
+                    Sound_PlayEffect(SEQ_SE_DP_DENSI06);
                 } else {
                     if (v2->unk_10 == 0) {
-                        if (PokedexSort_CanDetectForms(v3->unk_04) == 1) {
-                            if (v3->unk_08 != 2) {
-                                Sound_PlayEffect(1501);
+                        if (PokedexSort_CanDetectForms(bannerSettings->pokedexSortData) == TRUE) {
+                            if (bannerSettings->page != POKEDEX_PAGES_CRY) {
+                                Sound_PlayEffect(SEQ_SE_DP_DECIDE);
                             }
                         }
 
@@ -1203,405 +1217,390 @@ static void ov21_021E37CC(u32 param0, u32 param1, void *param2)
     }
 }
 
-static void ov21_021E3900(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1, const UnkStruct_ov21_021E342C *param2, int param3)
+static void DisplayBottomScreen(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData, const PageTransitionData *pageTransitionData, int heapID)
 {
-    ov21_021E3960(param1, param2, param3);
-    ov21_021E39FC(param0, param1, param3);
-    ov21_021E3AF0(param0, param1, param3);
-    ov21_021E3BD8(param0, param1, param3);
-    ov21_021E3FE4(param0, param2);
+    InitBottomScreenGraphics(pokedexGraphicData, pageTransitionData, heapID);
+    SetPageButtonSprites(pageButtonGraphics, pokedexGraphicData, heapID);
+    DisplayPageButtons(pageButtonGraphics, pokedexGraphicData, heapID);
+    Dummy1(pageButtonGraphics, pokedexGraphicData, heapID);
+    DisplayFormButton(pageButtonGraphics, pageTransitionData);
 }
 
-static void ov21_021E393C(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1)
+static void FreePageButtons(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData)
 {
-    ov21_021E3BDC(param0);
-    ov21_021E3BC0(param0);
-    ov21_021E3AAC(param0, param1);
-    Bg_ClearTilemap(param1->unk_00->bgConfig, 5);
+    Dummy2(pageButtonGraphics);
+    RemovePageButtons(pageButtonGraphics);
+    FreePageButtonGraphics(pageButtonGraphics, pokedexGraphicData);
+    Bg_ClearTilemap((*pokedexGraphicData)->bgConfig, 5);
 }
 
-static void ov21_021E3960(UnkStruct_ov21_021E3440 *param0, const UnkStruct_ov21_021E342C *param1, int param2)
+static void InitBottomScreenGraphics(PokedexGraphicData **pokedexGraphicData, const PageTransitionData *pageTransitionData, int heapID)
 {
-    void *v0;
-    NNSG2dScreenData *v1;
+    NNSG2dScreenData *ppScrData;
 
-    if (param1->unk_04->unk_30) {
-        ov21_021D276C(param0->unk_00, 6, 4, 0, 0, param2);
+    if (pageTransitionData->bannerSettings->unk_30) {
+        Pokedex_LoadGraphicNarcPaletteData(*pokedexGraphicData, 6, 4, 0, 0, heapID);
 
-        if (PokedexSort_IsNationalDex(param1->unk_08) == 1) {
-            ov21_021D276C(param0->unk_00, 24, 4, 0, 32, param2);
+        if (PokedexSort_IsNationalDex(pageTransitionData->sortData) == TRUE) {
+            Pokedex_LoadGraphicNarcPaletteData(*pokedexGraphicData, 24, 4, 0, 32, heapID);
         }
     }
 
-    ov21_021D2724(param0->unk_00, 34, param0->unk_00->bgConfig, 5, 0, 0, 1, param2);
+    Pokedex_LoadGraphicNarcCharacterData(*pokedexGraphicData, 34, (*pokedexGraphicData)->bgConfig, 5, 0, 0, 1, heapID);
 
-    v0 = ov21_021D27B8(param0->unk_00, 59, 1, &v1, param2);
+    void *pokedexGraphic = Pokedex_GetGraphicNarcScreenData(*pokedexGraphicData, 59, TRUE, &ppScrData, heapID);
 
-    Bg_LoadToTilemapRect(param0->unk_00->bgConfig, 5, v1->rawData, 0, 0, v1->screenWidth / 8, v1->screenHeight / 8);
-    Heap_FreeToHeap(v0);
-    Bg_ScheduleTilemapTransfer(param0->unk_00->bgConfig, 5);
+    Bg_LoadToTilemapRect((*pokedexGraphicData)->bgConfig, 5, ppScrData->rawData, 0, 0, ppScrData->screenWidth / 8, ppScrData->screenHeight / 8);
+    Heap_FreeToHeap(pokedexGraphic);
+    Bg_ScheduleTilemapTransfer((*pokedexGraphicData)->bgConfig, 5);
 }
 
-static void ov21_021E39FC(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1, int param2)
+static void SetPageButtonSprites(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData, int heapID)
 {
-    PokedexGraphicData *v0 = param1->unk_00;
-    NARC *v1 = ov21_021D26E0(param1->unk_00);
+    PokedexGraphicData *graphicData = *pokedexGraphicData;
+    NARC *pokedexGraphicsNARC = Pokedex_PokedexGraphicsNARC(*pokedexGraphicData);
 
-    param0->unk_18[0] = SpriteResourceCollection_AddTilesFrom(v0->spriteResourceCollection[0], v1, 96, 1, 96 + 2100, NNS_G2D_VRAM_TYPE_2DSUB, param2);
+    pageButtonGraphics->spriteResource[SPRITE_RESOURCE_CHAR] = SpriteResourceCollection_AddTilesFrom(graphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], pokedexGraphicsNARC, 96, 1, 96 + 2100, NNS_G2D_VRAM_TYPE_2DSUB, heapID);
 
-    SpriteTransfer_RequestCharAtEnd(param0->unk_18[0]);
-    SpriteResource_ReleaseData(param0->unk_18[0]);
+    SpriteTransfer_RequestCharAtEnd(pageButtonGraphics->spriteResource[SPRITE_RESOURCE_CHAR]);
+    SpriteResource_ReleaseData(pageButtonGraphics->spriteResource[SPRITE_RESOURCE_CHAR]);
 
-    param0->unk_18[1] = SpriteResourceCollection_AddPaletteFrom(v0->spriteResourceCollection[1], v1, 11, 0, 11 + 2100, NNS_G2D_VRAM_TYPE_2DSUB, 6, param2);
+    pageButtonGraphics->spriteResource[SPRITE_RESOURCE_PLTT] = SpriteResourceCollection_AddPaletteFrom(graphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], pokedexGraphicsNARC, 11, 0, 11 + 2100, NNS_G2D_VRAM_TYPE_2DSUB, 6, heapID);
 
-    SpriteTransfer_RequestPlttFreeSpace(param0->unk_18[1]);
-    SpriteResource_ReleaseData(param0->unk_18[1]);
+    SpriteTransfer_RequestPlttFreeSpace(pageButtonGraphics->spriteResource[SPRITE_RESOURCE_PLTT]);
+    SpriteResource_ReleaseData(pageButtonGraphics->spriteResource[SPRITE_RESOURCE_PLTT]);
 
-    param0->unk_18[2] = SpriteResourceCollection_AddFrom(v0->spriteResourceCollection[2], v1, 94, 1, 94 + 2100, 2, param2);
-    param0->unk_18[3] = SpriteResourceCollection_AddFrom(v0->spriteResourceCollection[3], v1, 95, 1, 95 + 2100, 3, param2);
+    pageButtonGraphics->spriteResource[SPRITE_RESOURCE_CELL] = SpriteResourceCollection_AddFrom(graphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], pokedexGraphicsNARC, 94, 1, 94 + 2100, SPRITE_RESOURCE_CELL, heapID);
+    pageButtonGraphics->spriteResource[SPRITE_RESOURCE_ANIM] = SpriteResourceCollection_AddFrom(graphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], pokedexGraphicsNARC, 95, 1, 95 + 2100, SPRITE_RESOURCE_ANIM, heapID);
 }
 
-static void ov21_021E3AAC(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1)
+static void FreePageButtonGraphics(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData)
 {
-    PokedexGraphicData *v0 = param1->unk_00;
+    PokedexGraphicData *graphicData = *pokedexGraphicData;
 
-    SpriteTransfer_ResetCharTransfer(param0->unk_18[0]);
-    SpriteTransfer_ResetPlttTransfer(param0->unk_18[1]);
+    SpriteTransfer_ResetCharTransfer(pageButtonGraphics->spriteResource[SPRITE_RESOURCE_CHAR]);
+    SpriteTransfer_ResetPlttTransfer(pageButtonGraphics->spriteResource[SPRITE_RESOURCE_PLTT]);
 
-    SpriteResourceCollection_Remove(v0->spriteResourceCollection[0], param0->unk_18[0]);
-    SpriteResourceCollection_Remove(v0->spriteResourceCollection[1], param0->unk_18[1]);
-    SpriteResourceCollection_Remove(v0->spriteResourceCollection[2], param0->unk_18[2]);
-    SpriteResourceCollection_Remove(v0->spriteResourceCollection[3], param0->unk_18[3]);
+    SpriteResourceCollection_Remove(graphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], pageButtonGraphics->spriteResource[SPRITE_RESOURCE_CHAR]);
+    SpriteResourceCollection_Remove(graphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], pageButtonGraphics->spriteResource[SPRITE_RESOURCE_PLTT]);
+    SpriteResourceCollection_Remove(graphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], pageButtonGraphics->spriteResource[SPRITE_RESOURCE_CELL]);
+    SpriteResourceCollection_Remove(graphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], pageButtonGraphics->spriteResource[SPRITE_RESOURCE_ANIM]);
 }
 
-static void ov21_021E3AF0(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1, int param2)
+static void DisplayPageButtons(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData, int heapID)
 {
-    SpriteResourcesHeader v0;
-    SpriteListTemplate v1;
-    PokedexGraphicData *v2 = param1->unk_00;
-    int v3;
+    SpriteResourcesHeader spriteResourcesHeader;
+    SpriteListTemplate spriteListTemplate;
+    PokedexGraphicData *graphicData = *pokedexGraphicData;
 
-    SpriteResourcesHeader_Init(&v0, 96 + 2100, 11 + 2100, 94 + 2100, 95 + 2100, 0xffffffff, 0xffffffff, 0, 0, v2->spriteResourceCollection[0], v2->spriteResourceCollection[1], v2->spriteResourceCollection[2], v2->spriteResourceCollection[3], NULL, NULL);
+    SpriteResourcesHeader_Init(&spriteResourcesHeader, 96 + 2100, 11 + 2100, 94 + 2100, 95 + 2100, 0xffffffff, 0xffffffff, 0, 0, graphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], graphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], graphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], graphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], NULL, NULL);
 
-    v1.list = v2->spriteList;
-    v1.resourceData = &v0;
-    v1.priority = 32;
-    v1.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
-    v1.heapID = param2;
-    v1.position.y = (24 * FX32_ONE) + (192 << FX32_SHIFT);
+    spriteListTemplate.list = graphicData->spriteList;
+    spriteListTemplate.resourceData = &spriteResourcesHeader;
+    spriteListTemplate.priority = 32;
+    spriteListTemplate.vramType = NNS_G2D_VRAM_TYPE_2DSUB;
+    spriteListTemplate.heapID = heapID;
+    spriteListTemplate.position.y = (BUTTON_Y * FX32_ONE) + (192 << FX32_SHIFT);
 
-    for (v3 = 0; v3 < 6; v3++) {
-        switch (v3) {
-        case 5:
-            v1.position.x = 228 * FX32_ONE;
+    for (int button = 0; button < MAX_POKEDEX_BUTTONS; button++) {
+        switch (button) {
+        case POKEDEX_BUTTONS_EXIT:
+            spriteListTemplate.position.x = BUTTON_EXIT_X * FX32_ONE;
             break;
-        case 0:
-            v1.position.x = 28 * FX32_ONE;
+        case POKEDEX_BUTTONS_INFO:
+            spriteListTemplate.position.x = BUTTON_INFO_X * FX32_ONE;
             break;
-        case 1:
-            v1.position.x = 68 * FX32_ONE;
+        case POKEDEX_BUTTONS_AREA:
+            spriteListTemplate.position.x = BUTTON_AREA_X * FX32_ONE;
             break;
-        case 2:
-            v1.position.x = 108 * FX32_ONE;
+        case POKEDEX_BUTTONS_CRY:
+            spriteListTemplate.position.x = BUTTON_CRY_X * FX32_ONE;
             break;
-        case 3:
-            v1.position.x = 148 * FX32_ONE;
+        case POKEDEX_BUTTONS_SIZE:
+            spriteListTemplate.position.x = BUTTON_SIZE_X * FX32_ONE;
             break;
-        case 4:
-            v1.position.x = 188 * FX32_ONE;
+        case POKEDEX_BUTTONS_FORMS:
+            spriteListTemplate.position.x = BUTTON_FORMS_X * FX32_ONE;
             break;
         }
 
-        param0->unk_00[v3] = SpriteList_Add(&v1);
-        Sprite_SetAnim(param0->unk_00[v3], v3);
+        pageButtonGraphics->sprite[button] = SpriteList_Add(&spriteListTemplate);
+        Sprite_SetAnim(pageButtonGraphics->sprite[button], button);
     }
 }
 
-static void ov21_021E3BC0(UnkStruct_ov21_021E3900 *param0)
+static void RemovePageButtons(PageButtonGraphics *pageButtonGraphics)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 6; v0++) {
-        Sprite_Delete(param0->unk_00[v0]);
+    for (int button = 0; button < MAX_POKEDEX_BUTTONS; button++) {
+        Sprite_Delete(pageButtonGraphics->sprite[button]);
     }
 }
 
-static void ov21_021E3BD8(UnkStruct_ov21_021E3900 *param0, UnkStruct_ov21_021E3440 *param1, int param2)
+static void Dummy1(PageButtonGraphics *pageButtonGraphics, PokedexGraphicData **pokedexGraphicData, int heapID)
 {
     return;
 }
 
-static void ov21_021E3BDC(UnkStruct_ov21_021E3900 *param0)
+static void Dummy2(PageButtonGraphics *pageButtonGraphics)
 {
     return;
 }
 
-static void ov21_021E3BE0(UnkStruct_ov21_021E326C *param0)
+static void PageBannerXLU(PageBannerData *pageBannerData)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 5; v0++) {
-        sub_02012AF0(param0->unk_04[v0]->unk_00, GX_OAM_MODE_XLU);
+    for (int page = 0; page < MAX_POKEDEX_PAGES; page++) {
+        sub_02012AF0(pageBannerData->bannerTextMan[page]->fontOAM, GX_OAM_MODE_XLU);
     }
 }
 
-static void ov21_021E3BFC(UnkStruct_ov21_021E326C *param0)
+static void PageBannerNormal(PageBannerData *pageBannerData)
 {
-    int v0;
-
-    for (v0 = 0; v0 < 5; v0++) {
-        sub_02012AF0(param0->unk_04[v0]->unk_00, GX_OAM_MODE_NORMAL);
+    for (int page = 0; page < MAX_POKEDEX_PAGES; page++) {
+        sub_02012AF0(pageBannerData->bannerTextMan[page]->fontOAM, GX_OAM_MODE_NORMAL);
     }
 }
 
-static BOOL ov21_021E3C18(UnkStruct_ov21_021E342C *param0, int param1, int param2)
+static BOOL GoToPage(PageTransitionData *pageTransitionData, enum PokedexPages newPage, enum PokedexPages oldPage)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param0->unk_04;
-    BOOL v1;
+    BannerSettings *bannerSettings = pageTransitionData->bannerSettings;
+    BOOL pageAccessible = SetCurrentPage(bannerSettings, newPage, oldPage);
 
-    v1 = ov21_021E2EC4(v0, param1, param2);
-
-    if (v1 == 1) {
-        param0->unk_28 = 0;
+    if (pageAccessible == TRUE) {
+        pageTransitionData->bottomScreenInteractible = FALSE;
     }
 
-    return v1;
+    return pageAccessible;
 }
 
-static void ov21_021E3C2C(UnkStruct_ov21_021E342C *param0)
+static void CheckForExit(PageTransitionData *pageTransitionData)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param0->unk_04;
-    ov21_021E3C34(param0);
+    CheckForB(pageTransitionData);
 }
 
-static void ov21_021E3C34(UnkStruct_ov21_021E342C *param0)
+static void CheckForB(PageTransitionData *pageTransitionData)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param0->unk_04;
-    int v1;
-    int v2;
+    BannerSettings *bannerSettings = pageTransitionData->bannerSettings;
 
-    ov21_021E3C64(param0);
+    setExitingFalse(pageTransitionData);
 
     if (gSystem.pressedKeys & PAD_BUTTON_B) {
-        ov21_021E2E00(v0);
-        param0->unk_2C = 1;
-        Sound_PlayEffect(1501);
+        ExitEntry(bannerSettings);
+        pageTransitionData->exiting = TRUE;
+        Sound_PlayEffect(SEQ_SE_DP_DECIDE);
         return;
     }
 }
 
-static void ov21_021E3C64(UnkStruct_ov21_021E342C *param0)
+static void setExitingFalse(PageTransitionData *pageTransitionData)
 {
-    param0->unk_2C = 0;
+    pageTransitionData->exiting = FALSE;
 }
 
-static void ov21_021E3C6C(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1, enum HeapId heapID)
+static void InitCursorData(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData, enum HeapId heapID)
 {
-    int v0;
+    enum CursorMovementType cursorMovementType;
 
-    param0->unk_18 = Heap_AllocFromHeap(heapID, sizeof(UnkStruct_ov21_021D4FE4) * 6);
+    pokedexBottomData->pokedexCursorData = Heap_AllocFromHeap(heapID, sizeof(PokedexCursorData) * MAX_POKEDEX_BUTTONS);
 
-    ov21_021D4FE4(&param0->unk_18[0], 28, 24, 24, 16, 0, 0, 0);
-    ov21_021D4FE4(&param0->unk_18[1], 68, 24, 24, 16, 0, 0, 1);
-    ov21_021D4FE4(&param0->unk_18[2], 108, 24, 24, 16, 0, 0, 2);
-    ov21_021D4FE4(&param0->unk_18[3], 148, 24, 24, 16, 0, 0, 3);
+    PokedexPanel_InitPokedexCursorData(&pokedexBottomData->pokedexCursorData[POKEDEX_BUTTONS_INFO], BUTTON_INFO_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, CURSOR_MOVEMENT_SELECT, CURSOR_MOVEMENT_SELECT, POKEDEX_BUTTONS_INFO);
+    PokedexPanel_InitPokedexCursorData(&pokedexBottomData->pokedexCursorData[POKEDEX_BUTTONS_AREA], BUTTON_AREA_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, CURSOR_MOVEMENT_SELECT, CURSOR_MOVEMENT_SELECT, POKEDEX_BUTTONS_AREA);
+    PokedexPanel_InitPokedexCursorData(&pokedexBottomData->pokedexCursorData[POKEDEX_BUTTONS_CRY], BUTTON_CRY_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, CURSOR_MOVEMENT_SELECT, CURSOR_MOVEMENT_SELECT, POKEDEX_BUTTONS_CRY);
+    PokedexPanel_InitPokedexCursorData(&pokedexBottomData->pokedexCursorData[POKEDEX_BUTTONS_SIZE], BUTTON_SIZE_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, CURSOR_MOVEMENT_SELECT, CURSOR_MOVEMENT_SELECT, POKEDEX_BUTTONS_SIZE);
 
-    if (PokedexSort_CanDetectForms(param1->unk_08) == 1) {
-        v0 = 0;
+    if (PokedexSort_CanDetectForms(pageTransitionData->sortData) == TRUE) {
+        cursorMovementType = CURSOR_MOVEMENT_SELECT;
     } else {
-        v0 = 2;
+        cursorMovementType = CURSOR_MOVEMENT_SKIP;
     }
 
-    ov21_021D4FE4(&param0->unk_18[4], 188, 24, 24, 16, v0, v0, 4);
-    ov21_021D4FE4(&param0->unk_18[5], 228, 24, 24, 16, 0, 0, 5);
+    PokedexPanel_InitPokedexCursorData(&pokedexBottomData->pokedexCursorData[POKEDEX_BUTTONS_FORMS], BUTTON_FORMS_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, cursorMovementType, cursorMovementType, POKEDEX_BUTTONS_FORMS);
+    PokedexPanel_InitPokedexCursorData(&pokedexBottomData->pokedexCursorData[POKEDEX_BUTTONS_EXIT], BUTTON_EXIT_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, CURSOR_MOVEMENT_SELECT, CURSOR_MOVEMENT_SELECT, POKEDEX_BUTTONS_EXIT);
 
-    param0->unk_14 = ov21_021D4EE4(heapID);
-    ov21_021D4F04(param0->unk_14, param0->unk_18, 6, 1);
+    pokedexBottomData->pokedexPanelData = PokedexPanel_Alloc(heapID);
+    PokedexPanel_InitPokedexPanelData(pokedexBottomData->pokedexPanelData, pokedexBottomData->pokedexCursorData, MAX_POKEDEX_BUTTONS, 1);
 }
 
-static void ov21_021E3D48(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1)
+static void PressButton(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param1->unk_04;
+    BannerSettings *bannerSettings = pageTransitionData->bannerSettings;
 
-    if (param1->unk_2C) {
+    if (pageTransitionData->exiting) {
         return;
     }
 
     if (gSystem.pressedKeys & PAD_KEY_RIGHT) {
-        ov21_021D4F20(param0->unk_14, 0, 1);
+        PokedexPanel_Move(pokedexBottomData->pokedexPanelData, PANEL_MOVEMENT_MULTICOL, 1);
     }
 
     if (gSystem.pressedKeys & PAD_KEY_LEFT) {
-        ov21_021D4F20(param0->unk_14, 0, -1);
+        PokedexPanel_Move(pokedexBottomData->pokedexPanelData, PANEL_MOVEMENT_MULTICOL, -1);
     }
 
     if (gSystem.pressedKeys & PAD_BUTTON_A) {
-        switch (ov21_021D4F7C(param0->unk_14)) {
-        case 0:
-            if (v0->unk_08 != 0) {
-                ov21_021E3C18(param1, 0, v0->unk_08);
-                param1->unk_0C[0] = 2;
-                Sound_PlayEffect(1675);
+        switch (PokedexPanel_GetCurrentButton(pokedexBottomData->pokedexPanelData)) {
+        case POKEDEX_BUTTONS_INFO:
+            if (bannerSettings->page != POKEDEX_PAGES_INFO) {
+                GoToPage(pageTransitionData, POKEDEX_BUTTONS_INFO, bannerSettings->page);
+                pageTransitionData->buttonStatus[POKEDEX_BUTTONS_INFO] = POKEDEX_BUTTON_PRESSED;
+                Sound_PlayEffect(SEQ_SE_DP_DENSI06);
             }
             break;
-        case 1:
-            if (v0->unk_08 != 1) {
-                ov21_021E3C18(param1, 1, v0->unk_08);
-                param1->unk_0C[1] = 2;
-                Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_AREA:
+            if (bannerSettings->page != POKEDEX_PAGES_AREA) {
+                GoToPage(pageTransitionData, POKEDEX_BUTTONS_AREA, bannerSettings->page);
+                pageTransitionData->buttonStatus[POKEDEX_BUTTONS_AREA] = POKEDEX_BUTTON_PRESSED;
+                Sound_PlayEffect(SEQ_SE_DP_DENSI06);
             }
             break;
-        case 2:
-            if (v0->unk_08 != 2) {
-                ov21_021E3C18(param1, 2, v0->unk_08);
-                param1->unk_0C[2] = 2;
-                Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_CRY:
+            if (bannerSettings->page != POKEDEX_PAGES_CRY) {
+                GoToPage(pageTransitionData, POKEDEX_BUTTONS_CRY, bannerSettings->page);
+                pageTransitionData->buttonStatus[POKEDEX_BUTTONS_CRY] = POKEDEX_BUTTON_PRESSED;
+                Sound_PlayEffect(SEQ_SE_DP_DENSI06);
             }
             break;
-        case 3:
-            if (v0->unk_08 != 3) {
-                if (ov21_021E3C18(param1, 3, v0->unk_08)) {
-                    param1->unk_0C[3] = 2;
-                    Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_SIZE:
+            if (bannerSettings->page != POKEDEX_PAGES_SIZE) {
+                if (GoToPage(pageTransitionData, POKEDEX_BUTTONS_SIZE, bannerSettings->page)) {
+                    pageTransitionData->buttonStatus[POKEDEX_BUTTONS_SIZE] = POKEDEX_BUTTON_PRESSED;
+                    Sound_PlayEffect(SEQ_SE_DP_DENSI06);
                 } else {
-                    if (v0->unk_08 != 2) {
-                        Sound_PlayEffect(1501);
+                    if (bannerSettings->page != POKEDEX_PAGES_CRY) {
+                        Sound_PlayEffect(SEQ_SE_DP_DECIDE);
                     }
                 }
             }
             break;
-        case 4:
-            if (v0->unk_08 != 4) {
-                if (ov21_021E3C18(param1, 4, v0->unk_08)) {
-                    param1->unk_0C[4] = 2;
-                    Sound_PlayEffect(1675);
+        case POKEDEX_BUTTONS_FORMS:
+            if (bannerSettings->page != POKEDEX_PAGES_FORMS) {
+                if (GoToPage(pageTransitionData, POKEDEX_BUTTONS_FORMS, bannerSettings->page)) {
+                    pageTransitionData->buttonStatus[POKEDEX_BUTTONS_FORMS] = POKEDEX_BUTTON_PRESSED;
+                    Sound_PlayEffect(SEQ_SE_DP_DENSI06);
                 } else {
-                    if (v0->unk_08 != 2) {
-                        Sound_PlayEffect(1501);
+                    if (bannerSettings->page != POKEDEX_PAGES_CRY) {
+                        Sound_PlayEffect(SEQ_SE_DP_DECIDE);
                     }
                 }
             }
             break;
-        case 5:
-            ov21_021E2E00(v0);
-            param1->unk_2C = 1;
-            param1->unk_0C[5] = 2;
-            Sound_PlayEffect(1501);
+        case POKEDEX_BUTTONS_EXIT:
+            ExitEntry(bannerSettings);
+            pageTransitionData->exiting = TRUE;
+            pageTransitionData->buttonStatus[POKEDEX_BUTTONS_EXIT] = 2;
+            Sound_PlayEffect(SEQ_SE_DP_DECIDE);
             break;
         }
     }
 }
 
-static void ov21_021E3E74(UnkStruct_ov21_021E37B4 *param0)
+static void freePanel(PokedexBottomData *pokedexBottomData)
 {
-    Heap_FreeToHeap(param0->unk_18);
-    ov21_021D4EFC(param0->unk_14);
-    param0->unk_14 = NULL;
-    param0->unk_18 = NULL;
+    Heap_FreeToHeap(pokedexBottomData->pokedexCursorData);
+    PokedexPanel_Free(pokedexBottomData->pokedexPanelData);
+    pokedexBottomData->pokedexPanelData = NULL;
+    pokedexBottomData->pokedexCursorData = NULL;
 }
 
-static void ov21_021E3E8C(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1)
+static void CursorToActivePage(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param1->unk_04;
+    BannerSettings *bannerSettings = pageTransitionData->bannerSettings;
 
-    param1->unk_30 = 0;
+    pageTransitionData->cursorOnTarget = FALSE;
 
-    switch (v0->unk_08) {
-    case 0:
-        ov21_021D4F20(param0->unk_14, 4, 0);
+    switch (bannerSettings->page) {
+    case POKEDEX_PAGES_INFO:
+        PokedexPanel_Move(pokedexBottomData->pokedexPanelData, PANEL_MOVEMENT_JUMP, POKEDEX_BUTTONS_INFO);
         break;
-    case 1:
-        ov21_021D4F20(param0->unk_14, 4, 1);
+    case POKEDEX_PAGES_AREA:
+        PokedexPanel_Move(pokedexBottomData->pokedexPanelData, PANEL_MOVEMENT_JUMP, POKEDEX_BUTTONS_AREA);
         break;
-    case 2:
-        ov21_021D4F20(param0->unk_14, 4, 2);
+    case POKEDEX_PAGES_CRY:
+        PokedexPanel_Move(pokedexBottomData->pokedexPanelData, PANEL_MOVEMENT_JUMP, POKEDEX_BUTTONS_CRY);
         break;
-    case 3:
-        ov21_021D4F20(param0->unk_14, 4, 3);
+    case POKEDEX_PAGES_SIZE:
+        PokedexPanel_Move(pokedexBottomData->pokedexPanelData, PANEL_MOVEMENT_JUMP, POKEDEX_BUTTONS_SIZE);
         break;
-    case 4:
-        ov21_021D4F20(param0->unk_14, 4, 4);
+    case POKEDEX_PAGES_FORMS:
+        PokedexPanel_Move(pokedexBottomData->pokedexPanelData, PANEL_MOVEMENT_JUMP, POKEDEX_BUTTONS_FORMS);
         break;
     default:
         break;
     }
 }
 
-static void ov21_021E3EEC(UnkStruct_ov21_021E37B4 *param0, UnkStruct_ov21_021E342C *param1)
+static void CheckForSpeciesChange(PokedexBottomData *pokedexBottomData, PageTransitionData *pageTransitionData)
 {
-    UnkStruct_ov21_021E2BA8 *v0 = param1->unk_04;
+    BannerSettings *bannerSettings = pageTransitionData->bannerSettings;
 
-    if (v0->unk_08 == 0) {
+    if (bannerSettings->page == POKEDEX_PAGES_INFO) {
         return;
     }
 
-    if (ov21_021D3998(param1->unk_08) != 2) {
+    if (ov21_021D3998(pageTransitionData->sortData) != 2) {
         return;
     }
 
-    if (param1->unk_30 == 0) {
+    if (pageTransitionData->cursorOnTarget == FALSE) {
         if (gSystem.pressedKeys & PAD_KEY_DOWN) {
-            param1->unk_30 = 1;
+            pageTransitionData->cursorOnTarget = TRUE;
         }
     } else {
         if (gSystem.pressedKeys & PAD_KEY_UP) {
-            param1->unk_30 = 0;
+            pageTransitionData->cursorOnTarget = FALSE;
         }
     }
 }
 
-static void ov21_021E3F2C(UnkStruct_ov21_021E3440 *param0, const UnkStruct_ov21_021E37B4 *param1, const UnkStruct_ov21_021E342C *param2)
+static void CursorToCurrentButton(PokedexGraphicData **pokedexGraphicData, const PokedexBottomData *pokedexBottomData, const PageTransitionData *pageTransitionData)
 {
-    ov21_021D25B8(param1->unk_14, param0->unk_00);
-    ov21_021E3F48(param0, param1, param2);
+    PokedexCursor_GoToCurrentButton(pokedexBottomData->pokedexPanelData, *pokedexGraphicData);
+    UpdateCursor(pokedexGraphicData, pokedexBottomData, pageTransitionData);
 }
 
-static void ov21_021E3F48(UnkStruct_ov21_021E3440 *param0, const UnkStruct_ov21_021E37B4 *param1, const UnkStruct_ov21_021E342C *param2)
+static void UpdateCursor(PokedexGraphicData **pokedexGraphicData, const PokedexBottomData *pokedexBottomData, const PageTransitionData *pageTransitionData)
 {
-    BOOL v0;
+    if (ov21_021D3998(pageTransitionData->sortData) != 0) {
+        BOOL visibilityChanged = UpdateCursorVisibility(pokedexGraphicData, TRUE);
 
-    if (ov21_021D3998(param2->unk_08) != 0) {
-        v0 = ov21_021E3F98(param0, 1);
-
-        if (param2->unk_30 == 0) {
-            if (v0) {
-                ov21_021D25B8(param1->unk_14, param0->unk_00);
+        if (pageTransitionData->cursorOnTarget == FALSE) {
+            if (visibilityChanged) {
+                PokedexCursor_GoToCurrentButton(pokedexBottomData->pokedexPanelData, *pokedexGraphicData);
             }
 
-            ov21_021E3F88(param0, param1);
+            CursorTransformToCurrent(pokedexGraphicData, pokedexBottomData);
         }
     } else {
-        ov21_021E3F98(param0, 0);
+        UpdateCursorVisibility(pokedexGraphicData, FALSE);
     }
 }
 
-static void ov21_021E3F88(UnkStruct_ov21_021E3440 *param0, const UnkStruct_ov21_021E37B4 *param1)
+static void CursorTransformToCurrent(PokedexGraphicData **pokedexGraphicData, const PokedexBottomData *pokedexBottomData)
 {
-    PokedexGraphicData *v0 = param0->unk_00;
-    ov21_021D2544(param1->unk_14, v0);
+    PokedexGraphicData *graphicData = *pokedexGraphicData;
+    PokedexCursor_CurrentButtonTransformation(pokedexBottomData->pokedexPanelData, graphicData);
 }
 
-static BOOL ov21_021E3F98(UnkStruct_ov21_021E3440 *param0, BOOL param1)
+static BOOL UpdateCursorVisibility(PokedexGraphicData **pokedexGraphicData, BOOL draw)
 {
-    PokedexGraphicData *v0 = param0->unk_00;
+    PokedexGraphicData *graphicData = *pokedexGraphicData;
 
-    if (ov21_021D25A0(&v0->unk_1E0) != param1) {
-        ov21_021D2584(&v0->unk_1E0, param1);
-        return 1;
+    if (PokedexCursor_GetCursorVisbility(&graphicData->cursor) != draw) {
+        PokedexCursor_SetCursorVisbility(&graphicData->cursor, draw);
+        return TRUE;
     }
 
-    return 0;
+    return FALSE;
 }
 
-static void ov21_021E3FC0(UnkStruct_ov21_021E326C *param0, int param1, int param2)
+static void UpdateBannerDisplay(PageBannerData *pageBannerData, enum PokedexPages newPage, enum PokedexPages oldPage)
 {
-    sub_020129D0(param0->unk_04[param2]->unk_00, 0);
-    sub_020129D0(param0->unk_04[param1]->unk_00, 1);
+    sub_020129D0(pageBannerData->bannerTextMan[oldPage]->fontOAM, FALSE);
+    sub_020129D0(pageBannerData->bannerTextMan[newPage]->fontOAM, TRUE);
 }
 
-static void ov21_021E3FE4(UnkStruct_ov21_021E3900 *param0, const UnkStruct_ov21_021E342C *param1)
+static void DisplayFormButton(PageButtonGraphics *pageButtonGraphics, const PageTransitionData *pageTransitionData)
 {
-    if (PokedexSort_CanDetectForms(param1->unk_08) == 0) {
-        Sprite_SetDrawFlag(param0->unk_00[4], 0);
+    if (PokedexSort_CanDetectForms(pageTransitionData->sortData) == FALSE) {
+        Sprite_SetDrawFlag(pageButtonGraphics->sprite[POKEDEX_BUTTONS_FORMS], FALSE);
     }
 }

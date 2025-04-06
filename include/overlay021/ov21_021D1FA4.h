@@ -6,13 +6,13 @@
 
 #include "struct_defs/pokemon_sprite.h"
 
+#include "overlay021/pokedex_display_box.h"
 #include "overlay021/pokedex_graphic_data.h"
+#include "overlay021/pokedex_panel.h"
 #include "overlay021/struct_ov21_021D22F8.h"
 #include "overlay021/struct_ov21_021D23F8.h"
 #include "overlay021/struct_ov21_021D2584.h"
 #include "overlay021/struct_ov21_021D2648.h"
-#include "overlay021/struct_ov21_021D4CB8.h"
-#include "overlay021/struct_ov21_021D4EE4_decl.h"
 
 #include "bg_window.h"
 #include "narc.h"
@@ -33,8 +33,8 @@ PokemonSprite *ov21_021D2274(const PokedexGraphicData *param0, int param1);
 void ov21_021D2280(const PokedexGraphicData *param0, BOOL param1, int param2);
 Sprite *ov21_021D22A8(const PokedexGraphicData *param0);
 Sprite *ov21_021D22C4(const PokedexGraphicData *param0);
-void ov21_021D22E0(PokedexGraphicData *param0, UnkStruct_ov21_021D4CB8 *param1, int param2, int param3, u32 param4);
-void ov21_021D22F8(UnkStruct_ov21_021D22F8 *param0, UnkStruct_ov21_021D4CB8 *param1, int param2, int param3, u32 param4);
+void ov21_021D22E0(PokedexGraphicData *param0, PokedexDisplayBox *param1, int param2, int param3, u32 param4);
+void ov21_021D22F8(UnkStruct_ov21_021D22F8 *param0, PokedexDisplayBox *param1, int param2, int param3, u32 param4);
 SpriteResource *ov21_021D2344(const PokedexGraphicData *param0, int param1);
 void ov21_021D2360(const PokedexGraphicData *param0, GXOamMode param1);
 void ov21_021D238C(const PokedexGraphicData *param0, int param1);
@@ -46,20 +46,20 @@ int ov21_021D24B8(UnkStruct_ov21_021D23F8 *param0);
 BOOL ov21_021D24EC(UnkStruct_ov21_021D23F8 *param0);
 void ov21_021D24FC(const PokedexGraphicData *param0, UnkStruct_ov21_021D23F8 *param1);
 void ov21_021D251C(const PokedexGraphicData *param0, UnkStruct_ov21_021D23F8 *param1, int param2);
-void ov21_021D2544(const UnkStruct_ov21_021D4EE4 *param0, PokedexGraphicData *param1);
-void ov21_021D2574(PokedexGraphicData *param0, int param1, int param2, int param3, int param4);
-void ov21_021D2584(UnkStruct_ov21_021D2584 *param0, int param1);
-BOOL ov21_021D25A0(UnkStruct_ov21_021D2584 *param0);
-void ov21_021D25AC(UnkStruct_ov21_021D2584 *param0, BOOL param1);
-void ov21_021D25B8(const UnkStruct_ov21_021D4EE4 *param0, PokedexGraphicData *param1);
-void ov21_021D25E8(PokedexGraphicData *param0, int param1, int param2, int param3, int param4);
-void ov21_021D2648(UnkStruct_ov21_021D2648 *param0, int param1, int param2, int param3, int param4, int param5);
-BOOL ov21_021D2664(UnkStruct_ov21_021D2648 *param0);
-NARC *ov21_021D26E0(PokedexGraphicData *param0);
-void *ov21_021D26E8(PokedexGraphicData *param0, u32 param1, BOOL param2, u32 param3);
-u32 ov21_021D2724(PokedexGraphicData *param0, u32 param1, BgConfig *param2, u32 param3, u32 param4, u32 param5, BOOL param6, u32 param7);
-void ov21_021D276C(PokedexGraphicData *param0, u32 param1, int param2, u32 param3, u32 param4, u32 param5);
-void *ov21_021D27B8(PokedexGraphicData *param0, u32 param1, BOOL param2, NNSG2dScreenData **param3, u32 param4);
+void PokedexCursor_CurrentButtonTransformation(const PokedexPanelData *param0, PokedexGraphicData *param1);
+void PokedexCursor_CursorTransformation(PokedexGraphicData *param0, int param1, int param2, int param3, int param4);
+void PokedexCursor_SetCursorVisbility(CursorGraphics *cursorGraphics, BOOL draw);
+BOOL PokedexCursor_GetCursorVisbility(CursorGraphics *param0);
+void Pokedex_SetStaticCursorSize(CursorGraphics *param0, BOOL param1);
+void PokedexCursor_GoToCurrentButton(const PokedexPanelData *param0, PokedexGraphicData *param1);
+void PokedexCursor_SetCursorPosAndSize(PokedexGraphicData *param0, int param1, int param2, int param3, int param4);
+void PokedexCursor_InitTransformation(CursorTransformation *param0, int param1, int param2, int param3, int param4, int param5);
+BOOL PokedexCursor_TakeStep(CursorTransformation *param0);
+NARC *Pokedex_PokedexGraphicsNARC(PokedexGraphicData *pokedexGraphicData);
+void *Pokedex_GetGraphicNarcMember(PokedexGraphicData *pokedexGraphicData, u32 memberIndex, BOOL compressed, u32 heapID);
+u32 Pokedex_LoadGraphicNarcCharacterData(PokedexGraphicData *pokedexGraphicData, u32 memberIndex, BgConfig *bgConfig, u32 bgLayer, u32 tileStart, u32 size, BOOL compressed, u32 heapID);
+void Pokedex_LoadGraphicNarcPaletteData(PokedexGraphicData *pokedexGraphicData, u32 memberIndex, int param2, u32 param3, u32 size, u32 heapID);
+void *Pokedex_GetGraphicNarcScreenData(PokedexGraphicData *pokedexGraphicData, u32 memberIndex, BOOL compressed, NNSG2dScreenData **ppScrData, u32 heapID);
 void *ov21_021D27E0(PokedexGraphicData *param0, u32 param1, NNSG2dPaletteData **param2, u32 param3);
 void *ov21_021D2808(PokedexGraphicData *param0, u32 param1, BOOL param2, NNSG2dCharacterData **param3, u32 param4);
 void ov21_021D2B88(UnkStruct_ov21_021D22F8 *param0, SpriteResourceCollection **param1, int param2, NARC *param3);
