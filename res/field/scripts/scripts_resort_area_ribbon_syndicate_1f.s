@@ -20,7 +20,7 @@ _0022:
 
 _002F:
     SetObjectEventPos 0, 16, 14
-    ScrCmd_189 0, 1
+    SetObjectEventDir 0, DIR_SOUTH
     End
 
 _003F:
@@ -52,10 +52,10 @@ _0078:
 
     .balign 4, 0
 _00AC:
-    MoveAction_002
-    MoveAction_071
-    MoveAction_015
-    MoveAction_072
+    FaceWest
+    LockDir
+    WalkNormalEast
+    UnlockDir
     EndMovement
 
 _00C0:

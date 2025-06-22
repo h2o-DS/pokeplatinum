@@ -9,7 +9,6 @@
 
 #include "field/field_system.h"
 #include "field/field_system_sub2_t.h"
-#include "overlay115/camera_angle.h"
 
 #include "camera.h"
 #include "field_map_change.h"
@@ -41,7 +40,7 @@ static void sub_0205075C(FieldSystem *fieldSystem);
 
 void sub_02050568(FieldSystem *fieldSystem)
 {
-    UnkStruct_02050568 *v0 = Heap_AllocFromHeapAtEnd(11, sizeof(UnkStruct_02050568));
+    UnkStruct_02050568 *v0 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELDMAP, sizeof(UnkStruct_02050568));
 
     memset(v0, 0, sizeof(UnkStruct_02050568));
     FieldTask_InitCall(fieldSystem->task, sub_020505A0, v0);

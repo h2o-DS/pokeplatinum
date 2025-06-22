@@ -5,6 +5,7 @@
 
 #include "constants/field/dynamic_map_features.h"
 #include "constants/species.h"
+#include "generated/movement_actions.h"
 
 #include "struct_decls/struct_020216E0_decl.h"
 #include "struct_decls/struct_0205E884_decl.h"
@@ -36,12 +37,12 @@
 #include "overlay009/struct_ov9_0224F6EC_decl.h"
 #include "overlay101/struct_ov101_021D5D90_decl.h"
 #include "overlay101/struct_ov101_021D86B0.h"
-#include "overlay115/camera_angle.h"
 
 #include "bg_window.h"
 #include "camera.h"
 #include "field_system.h"
 #include "field_task.h"
+#include "gfx_box_test.h"
 #include "gx_layers.h"
 #include "heap.h"
 #include "map_header_data.h"
@@ -65,7 +66,6 @@
 #include "sys_task_manager.h"
 #include "system_flags.h"
 #include "system_vars.h"
-#include "unk_0201CED8.h"
 #include "unk_02020AEC.h"
 #include "unk_0205F180.h"
 #include "unk_020655F4.h"
@@ -2379,7 +2379,7 @@ static BOOL ov9_0224AAD4(FieldTask *param0)
             } break;
             }
 
-            v6 = sub_02065838(v5, 0x0);
+            v6 = MovementAction_TurnActionTowardsDir(v5, MOVEMENT_ACTION_FACE_NORTH);
 
             LocalMapObj_SetAnimationCode(v4, v6);
             MapObject_TryFace(v4, v5);
@@ -2431,7 +2431,7 @@ static BOOL ov9_0224AAD4(FieldTask *param0)
         if (LocalMapObj_IsAnimationSet(v4) == 0) {
             break;
         } else {
-            int v14 = sub_02065838(
+            int v14 = MovementAction_TurnActionTowardsDir(
                 v2->unk_34.unk_22, 0x0);
 
             LocalMapObj_SetAnimationCode(v4, v14);
@@ -2899,7 +2899,7 @@ static void ov9_0224B3F8(UnkStruct_ov9_02249B04 *param0, UnkStruct_ov9_0224B528 
         GF_ASSERT(param1->unk_04);
 
         v0 = param1->unk_04 * sizeof(UnkStruct_ov101_021D5D90 *);
-        param1->unk_08 = Heap_AllocFromHeapAtEnd(4, v0);
+        param1->unk_08 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELD, v0);
 
         memset((u8 *)param1->unk_08, 0, v0);
         ov9_0224B6CC(param0, param1, param3, param4);
@@ -3728,7 +3728,7 @@ static void ov9_0224C088(UnkStruct_ov9_02249B04 *param0, UnkStruct_ov9_0224C14C 
         v2 = ov9_0224C044(param0, param2);
         v1 = NARC_GetMemberSize(param0->unk_08, v2);
 
-        param1->unk_18 = Heap_AllocFromHeapAtEnd(4, v1);
+        param1->unk_18 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELD, v1);
         NARC_ReadWholeMember(param0->unk_08, v2, param1->unk_18);
 
         v3 = param1->unk_18;
@@ -4093,7 +4093,7 @@ static void ov9_0224C4F4(UnkStruct_ov9_02249B04 *param0, u32 param1)
     }
 
     v0->unk_0C = NARC_GetMemberSize(param0->unk_0C, param1);
-    v0->unk_10 = Heap_AllocFromHeapAtEnd(4, v0->unk_0C);
+    v0->unk_10 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELD, v0->unk_0C);
 
     NARC_ReadWholeMember(param0->unk_0C, param1, v0->unk_10);
 }
@@ -5411,7 +5411,7 @@ static void ov9_0224D814(UnkStruct_ov9_02249B04 *param0, u32 param1)
         u32 v1 = Unk_ov9_022514A4[param1];
         u32 v2 = ov5_021DF5A8(param0->fieldSystem->unk_40, v1);
 
-        v0->unk_258[param1].unk_04 = Heap_AllocFromHeapAtEnd(4, v2);
+        v0->unk_258[param1].unk_04 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELD, v2);
         ov5_021DF5B4(param0->fieldSystem->unk_40, v1, v0->unk_258[param1].unk_04);
         v0->unk_258[param1].unk_00 = param1;
     }
@@ -5624,7 +5624,7 @@ static BOOL ov9_0224DBE4(UnkStruct_ov9_02249B04 *param0, int param1, VecFx32 *pa
 
         MTX_Identity33(&v3);
 
-        if (sub_0201CED8(v2->unk_0C, param2, &v3, v0)) {
+        if (GFXBoxTest_IsModelInView(v2->unk_0C, param2, &v3, v0)) {
             return 1;
         }
     }
@@ -7371,7 +7371,7 @@ BOOL ov9_0224F2B0(const MapObject *param0)
 
 UnkStruct_ov9_0224F6EC *ov9_0224F2BC(FieldSystem *fieldSystem, FieldTask *param1, MapObject *param2)
 {
-    UnkStruct_ov9_0224F6EC *v0 = Heap_AllocFromHeapAtEnd(4, sizeof(UnkStruct_ov9_0224F6EC));
+    UnkStruct_ov9_0224F6EC *v0 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELD, sizeof(UnkStruct_ov9_0224F6EC));
     memset(v0, 0, sizeof(UnkStruct_ov9_0224F6EC));
 
     v0->unk_00 = fieldSystem->unk_04->dynamicMapFeaturesData;

@@ -5,7 +5,6 @@
 
 #include "constants/forms.h"
 #include "constants/heap.h"
-#include "constants/palette.h"
 #include "constants/species.h"
 #include "generated/items.h"
 #include "generated/moves.h"
@@ -25,6 +24,7 @@
 #include "pokedex.h"
 #include "pokemon.h"
 #include "render_window.h"
+#include "screen_fade.h"
 #include "script_manager.h"
 #include "sound_playback.h"
 #include "strbuf.h"
@@ -33,11 +33,10 @@
 #include "sys_task.h"
 #include "sys_task_manager.h"
 #include "tutor_movesets.h"
-#include "unk_0200F174.h"
 #include "unk_02054884.h"
 
 #include "res/pokemon/species_learnsets_by_tutor.h"
-#include "res/text/bank/common_strings_2.h"
+#include "res/text/bank/menu_entries.h"
 
 typedef struct {
     FieldSystem *fieldSystem;
@@ -365,7 +364,7 @@ BOOL ScrCmd_ShowMoveTutorMoveSelectionMenu(ScriptContext *scriptContext)
         MoveTutorManager_AddMenuEntry(moveTutorManager, learnableMoves[i], 0xff, learnableMoves[i]);
     }
 
-    miscMessageLoader = MessageLoader_Init(MESSAGE_LOADER_NARC_HANDLE, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_COMMON_STRINGS_2, HEAP_ID_FIELD_TASK);
+    miscMessageLoader = MessageLoader_Init(MESSAGE_LOADER_NARC_HANDLE, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_MENU_ENTRIES, HEAP_ID_FIELD_TASK);
 
     MoveTutorManager_SetMessageLoader(moveTutorManager, miscMessageLoader);
     MoveTutorManager_AddMenuEntry(moveTutorManager, pl_msg_00000361_00005, 0xff, (u16)LIST_CANCEL); // cast required to match
@@ -520,7 +519,7 @@ static void SysTaskCallback(SysTask *sysTask, void *_moveTutorManager)
         return;
     }
 
-    if (IsScreenTransitionDone() == FALSE) {
+    if (IsScreenFadeDone() == FALSE) {
         return;
     }
 

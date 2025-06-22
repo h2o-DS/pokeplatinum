@@ -3,7 +3,7 @@
 
 #include "struct_decls/pokedexdata_decl.h"
 #include "struct_decls/struct_02027F8C_decl.h"
-#include "struct_decls/struct_0202C878_decl.h"
+#include "struct_defs/wi_fi_history.h"
 
 #include "field/field_system_decl.h"
 
@@ -20,9 +20,9 @@ typedef struct {
     TrainerInfo *unk_04;
     Party *unk_08;
     PalPad *unk_0C;
-    SaveData *unk_10;
-    UnkStruct_0202C878 *unk_14;
-    Options *unk_18;
+    SaveData *saveData;
+    WiFiHistory *wiFiHistory;
+    Options *options;
     JournalEntry *unk_1C;
     GameRecords *records;
     Pokedex *unk_24;

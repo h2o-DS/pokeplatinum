@@ -8,10 +8,10 @@
 #include "generated/species.h"
 
 #include "struct_decls/struct_020216E0_decl.h"
-#include "struct_decls/struct_0202C878_decl.h"
 #include "struct_decls/struct_020308A0_decl.h"
 #include "struct_decls/struct_02061830_decl.h"
 #include "struct_decls/struct_02061AB4_decl.h"
+#include "struct_defs/wi_fi_history.h"
 
 #include "field/field_system.h"
 #include "overlay005/ov5_021EB1A0.h"
@@ -37,6 +37,7 @@
 #include "pokemon.h"
 #include "render_window.h"
 #include "savedata_misc.h"
+#include "screen_fade.h"
 #include "script_manager.h"
 #include "sound.h"
 #include "sound_playback.h"
@@ -46,7 +47,6 @@
 #include "sys_task.h"
 #include "sys_task_manager.h"
 #include "system_vars.h"
-#include "unk_0200F174.h"
 #include "unk_02020AEC.h"
 #include "unk_0202C858.h"
 #include "unk_02030880.h"
@@ -167,7 +167,7 @@ BOOL ScrCmd_2DE(ScriptContext *ctx)
         Heap_FreeToHeap(v1);
     }
 
-    v7 = MessageLoader_Init(MESSAGE_LOADER_NARC_HANDLE, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_COMMON_STRINGS_2, HEAP_ID_FIELD_TASK);
+    v7 = MessageLoader_Init(MESSAGE_LOADER_NARC_HANDLE, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_MENU_ENTRIES, HEAP_ID_FIELD_TASK);
 
     ov5_021F661C(v9, v7);
     ov5_021F6760(v9, 12, 0xff, 0xfffe);
@@ -376,7 +376,7 @@ static void ov5_021F6A34(SysTask *param0, void *param1)
         return;
     }
 
-    if (IsScreenTransitionDone() == 0) {
+    if (IsScreenFadeDone() == FALSE) {
         return;
     }
 
@@ -1121,9 +1121,9 @@ BOOL ScrCmd_339(ScriptContext *ctx)
 
 BOOL ScrCmd_330(ScriptContext *ctx)
 {
-    UnkStruct_0202C878 *v0 = sub_0202C878(ctx->fieldSystem->saveData);
+    WiFiHistory *wiFiHistory = SaveData_WiFiHistory(ctx->fieldSystem->saveData);
 
-    sub_02038F8C(v0);
+    sub_02038F8C(wiFiHistory);
     return 1;
 }
 

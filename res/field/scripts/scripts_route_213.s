@@ -33,7 +33,7 @@ _0051:
 
 _0062:
     SetObjectEventPos 30, 0x28E, 0x32C
-    ScrCmd_189 30, 3
+    SetObjectEventDir 30, DIR_EAST
     ScrCmd_188 30, 17
     Return
 
@@ -78,7 +78,7 @@ _010B:
     SetFlag FLAG_UNK_0x0118
     RemoveObject 30
     SetObjectEventPos 30, 0x2AB, 0x341
-    ScrCmd_189 30, 3
+    SetObjectEventDir 30, DIR_EAST
     ScrCmd_188 30, 17
     ClearFlag FLAG_UNK_0x021A
     AddObject 30
@@ -198,120 +198,120 @@ _02F3:
 
     .balign 4, 0
 _0308:
-    MoveAction_019 10
-    MoveAction_016 2
-    MoveAction_039
+    WalkFastEast 10
+    WalkFastNorth 2
+    WalkOnSpotFastEast
     EndMovement
 
     .balign 4, 0
 _0318:
-    MoveAction_019 10
-    MoveAction_016 2
-    MoveAction_019 2
+    WalkFastEast 10
+    WalkFastNorth 2
+    WalkFastEast 2
     EndMovement
 
     .balign 4, 0
 _0328:
-    MoveAction_019 10
-    MoveAction_016 3
-    MoveAction_019
+    WalkFastEast 10
+    WalkFastNorth 3
+    WalkFastEast
     EndMovement
 
     .balign 4, 0
 _0338:
-    MoveAction_019 10
-    MoveAction_016
-    MoveAction_019
+    WalkFastEast 10
+    WalkFastNorth
+    WalkFastEast
     EndMovement
 
     .balign 4, 0
 _0348:
-    MoveAction_037
+    WalkOnSpotFastSouth
     EndMovement
 
     .balign 4, 0
 _0350:
-    MoveAction_016
-    MoveAction_019 10
+    WalkFastNorth
+    WalkFastEast 10
     EndMovement
 
     .balign 4, 0
 _035C:
-    MoveAction_016
-    MoveAction_019 10
+    WalkFastNorth
+    WalkFastEast 10
     EndMovement
 
     .balign 4, 0
 _0368:
-    MoveAction_017
-    MoveAction_019 4
-    MoveAction_016
-    MoveAction_019 6
+    WalkFastSouth
+    WalkFastEast 4
+    WalkFastNorth
+    WalkFastEast 6
     EndMovement
 
     .balign 4, 0
 _037C:
-    MoveAction_016 2
-    MoveAction_019 10
+    WalkFastNorth 2
+    WalkFastEast 10
     EndMovement
 
     .balign 4, 0
 _0388:
-    MoveAction_075
+    EmoteExclamationMark
     EndMovement
 
     .balign 4, 0
 _0390:
-    MoveAction_019 10
+    WalkFastEast 10
     EndMovement
 
     .balign 4, 0
 _0398:
-    MoveAction_017 2
-    MoveAction_019 9
+    WalkFastSouth 2
+    WalkFastEast 9
     EndMovement
 
     .balign 4, 0
 _03A4:
-    MoveAction_019 4
-    MoveAction_016
-    MoveAction_019 6
+    WalkFastEast 4
+    WalkFastNorth
+    WalkFastEast 6
     EndMovement
 
     .balign 4, 0
 _03B4:
-    MoveAction_016
-    MoveAction_019 10
+    WalkFastNorth
+    WalkFastEast 10
     EndMovement
 
     .balign 4, 0
 _03C0:
-    MoveAction_063
-    MoveAction_003
+    Delay8
+    FaceEast
     EndMovement
 
     .balign 4, 0
 _03CC:
-    MoveAction_062 10
-    MoveAction_034
+    Delay4 10
+    WalkOnSpotNormalWest
     EndMovement
 
     .balign 4, 0
 _03D8:
-    MoveAction_062 11
-    MoveAction_034
+    Delay4 11
+    WalkOnSpotNormalWest
     EndMovement
 
     .balign 4, 0
 _03E4:
-    MoveAction_062 3
-    MoveAction_035
+    Delay4 3
+    WalkOnSpotNormalEast
     EndMovement
 
     .balign 4, 0
 _03F0:
-    MoveAction_063
-    MoveAction_035
+    Delay8
+    WalkOnSpotNormalEast
     EndMovement
 
 _03FC:

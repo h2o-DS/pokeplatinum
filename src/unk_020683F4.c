@@ -34,6 +34,7 @@
 #include "game_options.h"
 #include "heap.h"
 #include "item.h"
+#include "mail.h"
 #include "map_header.h"
 #include "map_header_data.h"
 #include "map_object.h"
@@ -45,6 +46,7 @@
 #include "pokeradar.h"
 #include "render_window.h"
 #include "save_player.h"
+#include "screen_fade.h"
 #include "script_manager.h"
 #include "start_menu.h"
 #include "strbuf.h"
@@ -52,8 +54,6 @@
 #include "system_flags.h"
 #include "system_vars.h"
 #include "terrain_collision_manager.h"
-#include "unk_0200F174.h"
-#include "unk_02028124.h"
 #include "unk_0203C954.h"
 #include "unk_0203D1B8.h"
 #include "unk_020553DC.h"
@@ -331,28 +331,28 @@ static void sub_02068630(UnkStruct_02068630 *param0, const UnkStruct_020684D0 *p
 {
     FieldSystem *fieldSystem;
     StartMenu *menu;
-    PartyManagementData *v2;
+    PartyManagementData *partyMan;
 
     fieldSystem = FieldTask_GetFieldSystem(param0->unk_00);
     menu = FieldTask_GetEnv(param0->unk_00);
-    v2 = Heap_AllocFromHeap(HEAP_ID_FIELDMAP, sizeof(PartyManagementData));
+    partyMan = Heap_AllocFromHeap(HEAP_ID_FIELDMAP, sizeof(PartyManagementData));
 
-    memset(v2, 0, sizeof(PartyManagementData));
+    memset(partyMan, 0, sizeof(PartyManagementData));
 
-    v2->unk_00 = SaveData_GetParty(fieldSystem->saveData);
-    v2->unk_04 = SaveData_GetBag(fieldSystem->saveData);
-    v2->unk_08 = SaveData_GetMailBox(fieldSystem->saveData);
-    v2->unk_0C = SaveData_GetOptions(fieldSystem->saveData);
-    v2->unk_10 = SaveData_GetTVBroadcast(fieldSystem->saveData);
-    v2->unk_18 = &menu->fieldMoveContext;
-    v2->unk_21 = 0;
-    v2->unk_20 = 5;
-    v2->unk_1C = fieldSystem;
-    v2->unk_24 = param0->unk_04;
-    v2->selectedMonSlot = param0->unk_06;
+    partyMan->party = SaveData_GetParty(fieldSystem->saveData);
+    partyMan->bag = SaveData_GetBag(fieldSystem->saveData);
+    partyMan->mailbox = SaveData_GetMailbox(fieldSystem->saveData);
+    partyMan->options = SaveData_GetOptions(fieldSystem->saveData);
+    partyMan->broadcast = SaveData_GetTVBroadcast(fieldSystem->saveData);
+    partyMan->fieldMoveContext = &menu->fieldMoveContext;
+    partyMan->unk_21 = 0;
+    partyMan->unk_20 = 5;
+    partyMan->fieldSystem = fieldSystem;
+    partyMan->usedItemID = param0->unk_04;
+    partyMan->selectedMonSlot = param0->unk_06;
 
-    FieldSystem_StartChildProcess(fieldSystem, &Unk_020F1E88, v2);
-    menu->taskData = v2;
+    FieldSystem_StartChildProcess(fieldSystem, &Unk_020F1E88, partyMan);
+    menu->taskData = partyMan;
     sub_0203B674(menu, sub_0203B7C0);
 }
 
@@ -580,28 +580,28 @@ static void sub_02068A34(UnkStruct_02068630 *param0, const UnkStruct_020684D0 *p
 {
     FieldSystem *fieldSystem;
     StartMenu *menu;
-    PartyManagementData *v2;
+    PartyManagementData *partyMan;
 
     fieldSystem = FieldTask_GetFieldSystem(param0->unk_00);
     menu = FieldTask_GetEnv(param0->unk_00);
-    v2 = Heap_AllocFromHeap(HEAP_ID_FIELDMAP, sizeof(PartyManagementData));
+    partyMan = Heap_AllocFromHeap(HEAP_ID_FIELDMAP, sizeof(PartyManagementData));
 
-    memset(v2, 0, sizeof(PartyManagementData));
+    memset(partyMan, 0, sizeof(PartyManagementData));
 
-    v2->unk_00 = SaveData_GetParty(fieldSystem->saveData);
-    v2->unk_04 = SaveData_GetBag(fieldSystem->saveData);
-    v2->unk_08 = SaveData_GetMailBox(fieldSystem->saveData);
-    v2->unk_0C = SaveData_GetOptions(fieldSystem->saveData);
-    v2->unk_18 = &menu->fieldMoveContext;
-    v2->unk_21 = 0;
-    v2->unk_20 = 6;
-    v2->unk_1C = fieldSystem;
-    v2->unk_24 = param0->unk_04;
-    v2->selectedMonSlot = param0->unk_06;
-    v2->unk_26 = Item_MoveForTMHM(param0->unk_04);
+    partyMan->party = SaveData_GetParty(fieldSystem->saveData);
+    partyMan->bag = SaveData_GetBag(fieldSystem->saveData);
+    partyMan->mailbox = SaveData_GetMailbox(fieldSystem->saveData);
+    partyMan->options = SaveData_GetOptions(fieldSystem->saveData);
+    partyMan->fieldMoveContext = &menu->fieldMoveContext;
+    partyMan->unk_21 = 0;
+    partyMan->unk_20 = 6;
+    partyMan->fieldSystem = fieldSystem;
+    partyMan->usedItemID = param0->unk_04;
+    partyMan->selectedMonSlot = param0->unk_06;
+    partyMan->learnedMove = Item_MoveForTMHM(param0->unk_04);
 
-    FieldSystem_StartChildProcess(fieldSystem, &Unk_020F1E88, v2);
-    menu->taskData = v2;
+    FieldSystem_StartChildProcess(fieldSystem, &Unk_020F1E88, partyMan);
+    menu->taskData = partyMan;
     sub_0203B674(menu, sub_0203B7C0);
 }
 
@@ -709,7 +709,7 @@ static void sub_02068BF8(UnkStruct_02068630 *param0, const UnkStruct_020684D0 *p
 
     fieldSystem = FieldTask_GetFieldSystem(param0->unk_00);
     menu = FieldTask_GetEnv(param0->unk_00);
-    v2 = Heap_AllocFromHeapAtEnd(11, sizeof(int));
+    v2 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELDMAP, sizeof(int));
 
     (*v2) = 0;
     FieldSystem_StartFieldMap(fieldSystem);
@@ -721,7 +721,7 @@ static void sub_02068BF8(UnkStruct_02068630 *param0, const UnkStruct_020684D0 *p
 
 static BOOL sub_02068C38(UnkStruct_02068870 *param0)
 {
-    int *v0 = Heap_AllocFromHeapAtEnd(11, sizeof(int));
+    int *v0 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELDMAP, sizeof(int));
 
     *v0 = 0;
     FieldSystem_CreateTask(param0->fieldSystem, RefreshRadarChain, v0);
@@ -936,12 +936,10 @@ static BOOL sub_02068F48(FieldTask *task)
         MapObjectMan_PauseAllMovement(fieldSystem->mapObjMan);
         FieldMessage_AddWindow(fieldSystem->bgConfig, &v1->unk_00, 3);
 
-        {
-            const Options *v2 = SaveData_GetOptions(fieldSystem->saveData);
+        const Options *options = SaveData_GetOptions(fieldSystem->saveData);
 
-            FieldMessage_DrawWindow(&v1->unk_00, v2);
-            v1->unk_14 = FieldMessage_Print(&v1->unk_00, v1->unk_10, v2, 1);
-        }
+        FieldMessage_DrawWindow(&v1->unk_00, options);
+        v1->unk_14 = FieldMessage_Print(&v1->unk_00, v1->unk_10, options, 1);
         v1->unk_16++;
         break;
     case 1:
@@ -968,27 +966,27 @@ static void sub_02068FEC(UnkStruct_02068630 *param0, const UnkStruct_020684D0 *p
 {
     FieldSystem *fieldSystem;
     StartMenu *menu;
-    PartyManagementData *v2;
+    PartyManagementData *partyMan;
 
     fieldSystem = FieldTask_GetFieldSystem(param0->unk_00);
     menu = FieldTask_GetEnv(param0->unk_00);
-    v2 = Heap_AllocFromHeap(HEAP_ID_FIELDMAP, sizeof(PartyManagementData));
+    partyMan = Heap_AllocFromHeap(HEAP_ID_FIELDMAP, sizeof(PartyManagementData));
 
-    memset(v2, 0, sizeof(PartyManagementData));
+    memset(partyMan, 0, sizeof(PartyManagementData));
 
-    v2->unk_00 = SaveData_GetParty(fieldSystem->saveData);
-    v2->unk_04 = SaveData_GetBag(fieldSystem->saveData);
-    v2->unk_08 = SaveData_GetMailBox(fieldSystem->saveData);
-    v2->unk_0C = SaveData_GetOptions(fieldSystem->saveData);
-    v2->unk_10 = SaveData_GetTVBroadcast(fieldSystem->saveData);
-    v2->unk_18 = &menu->fieldMoveContext;
-    v2->unk_21 = 0;
-    v2->unk_20 = 16;
-    v2->unk_24 = param0->unk_04;
-    v2->selectedMonSlot = param0->unk_06;
+    partyMan->party = SaveData_GetParty(fieldSystem->saveData);
+    partyMan->bag = SaveData_GetBag(fieldSystem->saveData);
+    partyMan->mailbox = SaveData_GetMailbox(fieldSystem->saveData);
+    partyMan->options = SaveData_GetOptions(fieldSystem->saveData);
+    partyMan->broadcast = SaveData_GetTVBroadcast(fieldSystem->saveData);
+    partyMan->fieldMoveContext = &menu->fieldMoveContext;
+    partyMan->unk_21 = 0;
+    partyMan->unk_20 = 16;
+    partyMan->usedItemID = param0->unk_04;
+    partyMan->selectedMonSlot = param0->unk_06;
 
-    FieldSystem_StartChildProcess(fieldSystem, &Unk_020F1E88, v2);
-    menu->taskData = v2;
+    FieldSystem_StartChildProcess(fieldSystem, &Unk_020F1E88, partyMan);
+    menu->taskData = partyMan;
     sub_0203B674(menu, sub_0203B7C0);
 }
 
@@ -1096,7 +1094,7 @@ static void sub_020691E0(UnkStruct_02068630 *param0, const UnkStruct_020684D0 *p
 {
     FieldSystem *fieldSystem;
     StartMenu *menu;
-    PartyManagementData *v2;
+    PartyManagementData *partyMan; // unused
 
     fieldSystem = FieldTask_GetFieldSystem(param0->unk_00);
     menu = FieldTask_GetEnv(param0->unk_00);
@@ -1195,7 +1193,7 @@ static BOOL sub_0206932C(FieldTask *task)
         v1->unk_2A = 1;
         break;
     case 1:
-        if (IsScreenTransitionDone()) {
+        if (IsScreenFadeDone()) {
             v1->unk_24 = v1->unk_20(fieldSystem);
             v1->unk_2A = 2;
         }
@@ -1224,7 +1222,7 @@ static BOOL sub_0206932C(FieldTask *task)
         }
         break;
     case 4:
-        if (IsScreenTransitionDone()) {
+        if (IsScreenFadeDone()) {
             MapObjectMan_UnpauseAllMovement(fieldSystem->mapObjMan);
             Heap_FreeToHeap(v1);
             return 1;

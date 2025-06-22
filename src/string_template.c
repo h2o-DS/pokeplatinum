@@ -31,7 +31,7 @@
 #include "unk_020996D0.h"
 
 #include "res/text/bank/common_strings.h"
-#include "res/text/bank/common_strings_2.h"
+#include "res/text/bank/menu_entries.h"
 #include "res/text/bank/mystery_gift_event_names.h"
 #include "res/text/bank/special_met_location_names.h"
 
@@ -147,15 +147,15 @@ void StringTemplate_SetPlayerName(StringTemplate *template, u32 idx, const Train
     SetStringTemplateArg(template, idx, template->templateBuf, NULL);
 }
 
-void StringTemplate_SetRivalName(StringTemplate *template, u32 idx, const SaveData *save)
+void StringTemplate_SetRivalName(StringTemplate *template, u32 idx, const SaveData *saveData)
 {
-    Strbuf_CopyChars(template->templateBuf, MiscSaveBlock_RivalName(SaveData_MiscSaveBlockConst(save)));
+    Strbuf_CopyChars(template->templateBuf, MiscSaveBlock_RivalName(SaveData_MiscSaveBlockConst(saveData)));
     SetStringTemplateArg(template, idx, template->templateBuf, NULL);
 }
 
-void StringTemplate_SetCounterpartName(StringTemplate *template, u32 idx, const SaveData *save)
+void StringTemplate_SetCounterpartName(StringTemplate *template, u32 idx, const SaveData *saveData)
 {
-    const TrainerInfo *playerInfo = SaveData_GetTrainerInfo((SaveData *)save);
+    const TrainerInfo *playerInfo = SaveData_GetTrainerInfo((SaveData *)saveData);
     MessageLoader *loader = InitMessageLoader(TEXT_BANK_COUNTERPART_NAMES, template->heapID);
 
     if (TrainerInfo_Gender(playerInfo) == GENDER_MALE) {
@@ -520,11 +520,11 @@ void StringTemplate_SetContestBackdropName(StringTemplate *template, u32 idx, u3
     SetArgFromArchive(template, idx, backdrop, TEXT_BANK_CONTEST_BACKDROP_NAMES);
 }
 
-void StringTemplate_SetUnionGroupName(StringTemplate *template, SaveData *save, int groupID, int idx, int nameType)
+void StringTemplate_SetUnionGroupName(StringTemplate *template, SaveData *saveData, int groupID, int idx, int nameType)
 {
     int gender, countryCode;
     Strbuf *groupName;
-    RecordMixedRNG *group = SaveData_GetRecordMixedRNG(save);
+    RecordMixedRNG *group = SaveData_GetRecordMixedRNG(saveData);
 
     gender = RecordMixedRNG_GetEntryGender(group, groupID);
     countryCode = RecordMixedRNG_GetEntryCountryCode(group, groupID);
@@ -611,7 +611,7 @@ void StringTemplate_CapitalizeArgAtIndex(StringTemplate *template, u32 idx)
 
 void StringTemplate_SetDepartmentStoreFloor(StringTemplate *template, u32 idx, u32 floor)
 {
-    MessageLoader *loader = InitMessageLoader(TEXT_BANK_COMMON_STRINGS_2, template->heapID);
+    MessageLoader *loader = InitMessageLoader(TEXT_BANK_MENU_ENTRIES, template->heapID);
 
     GF_ASSERT(floor <= 5);
 

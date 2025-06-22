@@ -68,7 +68,7 @@ _00CD:
 
     .balign 4, 0
 _00D8:
-    MoveAction_013
+    WalkNormalSouth
     EndMovement
 
     .byte 13
@@ -82,7 +82,7 @@ _00D8:
 
     .balign 4, 0
 _00E8:
-    MoveAction_013 2
+    WalkNormalSouth 2
     EndMovement
 
 _00F0:
@@ -227,7 +227,7 @@ _0306:
     End
 
 _031F:
-    ScrCmd_252 VAR_RESULT
+    GetPCBoxesFreeSlotCount VAR_RESULT
     GoToIfEq VAR_RESULT, 0, _0338
     GoTo _020D
     End
@@ -241,23 +241,23 @@ _0338:
 
     .balign 4, 0
 _0344:
-    MoveAction_015
-    MoveAction_032
+    WalkNormalEast
+    WalkOnSpotNormalNorth
     EndMovement
 
     .balign 4, 0
 _0350:
-    MoveAction_012
+    WalkNormalNorth
     EndMovement
 
     .balign 4, 0
 _0358:
-    MoveAction_012 2
+    WalkNormalNorth 2
     EndMovement
 
     .balign 4, 0
 _0360:
-    MoveAction_001
+    FaceSouth
     EndMovement
 
 _0368:
@@ -547,7 +547,7 @@ _0696:
     End
 
 _06A1:
-    ScrCmd_1D6 VAR_0x8004, VAR_RESULT
+    CheckBackdrop VAR_0x8004, VAR_RESULT
     GoToIfEq VAR_RESULT, 0, _06D3
     AddVar VAR_0x8004, 1
     GoToIfLe VAR_0x8004, 13, _06A1
@@ -586,7 +586,7 @@ _0710:
     End
 
 _071E:
-    ScrCmd_1D6 VAR_0x8004, VAR_RESULT
+    CheckBackdrop VAR_0x8004, VAR_RESULT
     GoToIfEq VAR_RESULT, 0, _074A
     AddVar VAR_0x8004, 1
     GoToIfLe VAR_0x8004, 13, _071E

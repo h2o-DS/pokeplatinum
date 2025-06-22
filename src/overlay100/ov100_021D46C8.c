@@ -10,7 +10,6 @@
 #include "overlay100/struct_ov100_021D4890.h"
 #include "overlay100/struct_ov100_021D49B4.h"
 #include "overlay100/struct_ov100_021D4DD8.h"
-#include "overlay115/camera_angle.h"
 
 #include "bg_window.h"
 #include "camera.h"
@@ -50,7 +49,7 @@ int ov100_021D46C8(UnkStruct_ov100_021D46C8 *param0, UnkStruct_020985E4 *param1,
         Strbuf_Copy(v3, v2);
     }
 
-    v4 = Options_TextFrameDelay(param1->unk_04);
+    v4 = Options_TextFrameDelay(param1->options);
     Window_FillTilemap(&param0->unk_30, 0xFF);
 
     v0 = Text_AddPrinterWithParams(&param0->unk_30, FONT_MESSAGE, v3, 0, 0, v4, NULL);

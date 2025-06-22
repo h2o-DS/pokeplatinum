@@ -19,12 +19,12 @@
 #include "message.h"
 #include "narc.h"
 #include "render_window.h"
+#include "screen_fade.h"
 #include "strbuf.h"
 #include "string_template.h"
 #include "system.h"
 #include "system_data.h"
 #include "text.h"
-#include "unk_0200F174.h"
 #include "unk_0202ACE0.h"
 #include "unk_02030CE8.h"
 #include "unk_020366A0.h"
@@ -97,7 +97,7 @@ static int (*Unk_ov94_02246A40[])(UnkStruct_ov94_0223FD4C *) = {
 int ov94_02244950(UnkStruct_ov94_0223FD4C *param0, int param1)
 {
     ov94_02244F2C(param0);
-    StartScreenTransition(0, 1, 1, 0x0, 6, 1, HEAP_ID_62);
+    StartScreenFade(FADE_BOTH_SCREENS, FADE_TYPE_UNK_1, FADE_TYPE_UNK_1, FADE_TO_BLACK, 6, 1, HEAP_ID_62);
 
     ov94_02244A7C(param0->unk_04);
     ov94_02244B8C(param0);
@@ -107,7 +107,7 @@ int ov94_02244950(UnkStruct_ov94_0223FD4C *param0, int param1)
     GXLayers_EngineAToggleLayers(GX_PLANEMASK_BG1, 1);
     GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG0, 1);
     GXLayers_EngineBToggleLayers(GX_PLANEMASK_BG1, 1);
-    sub_02038438(param0->unk_00->unk_20);
+    sub_02038438(param0->unk_00->saveData);
 
     ov94_02245934(param0);
 
@@ -274,7 +274,7 @@ static void ov94_02244B8C(UnkStruct_ov94_0223FD4C *param0)
     Graphics_LoadPaletteFromOpenNARC(v1, 3, 4, 0, 0, HEAP_ID_62);
     Font_LoadScreenIndicatorsPalette(0, 13 * 0x20, HEAP_ID_62);
     Font_LoadScreenIndicatorsPalette(4, 13 * 0x20, HEAP_ID_62);
-    LoadMessageBoxGraphics(v0, 0, 1, 10, Options_Frame(param0->unk_00->unk_24), HEAP_ID_62);
+    LoadMessageBoxGraphics(v0, 0, 1, 10, Options_Frame(param0->unk_00->options), HEAP_ID_62);
     LoadStandardWindowGraphics(v0, 0, (1 + (18 + 12)), 11, 0, HEAP_ID_62);
     Graphics_LoadTilesToBgLayerFromOpenNARC(v1, 2, v0, 1, 0, 0, 0, HEAP_ID_62);
     Graphics_LoadTilemapToBgLayerFromOpenNARC(v1, 5, v0, 1, 0, 32 * 24 * 2, 0, HEAP_ID_62);
@@ -632,7 +632,7 @@ static int ov94_02245300(UnkStruct_ov94_0223FD4C *param0)
 
 static int ov94_022453B8(UnkStruct_ov94_0223FD4C *param0)
 {
-    sub_02030E78(param0->unk_00->unk_20, &param0->unk_1144);
+    sub_02030E78(param0->unk_00->saveData, &param0->unk_1144);
     ov94_0223BB84(&param0->unk_1144, &param0->unk_11A8);
 
     param0->unk_2C = 10;
@@ -753,7 +753,7 @@ static int ov94_02245594(UnkStruct_ov94_0223FD4C *param0)
 {
     sub_02039794();
     ov94_0223C5F4(param0);
-    StartScreenTransition(0, 0, 0, 0x0, 6, 1, HEAP_ID_62);
+    StartScreenFade(FADE_BOTH_SCREENS, FADE_TYPE_UNK_0, FADE_TYPE_UNK_0, FADE_TO_BLACK, 6, 1, HEAP_ID_62);
 
     param0->unk_2C = 0;
     param0->unk_1110 = 1;

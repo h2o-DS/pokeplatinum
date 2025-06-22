@@ -580,7 +580,7 @@ u8 ov84_022400A0(UnkStruct_ov84_0223B5A0 *param0)
 
     RenderControlFlags_SetCanABSpeedUpPrint(1);
     RenderControlFlags_SetAutoScrollFlags(0);
-    v0 = Text_AddPrinterWithParams(&param0->unk_04[6], FONT_MESSAGE, param0->unk_3F8, 0, 0, Options_TextFrameDelay(param0->unk_D0), ov84_022400E0);
+    v0 = Text_AddPrinterWithParams(&param0->unk_04[6], FONT_MESSAGE, param0->unk_3F8, 0, 0, Options_TextFrameDelay(param0->options), ov84_022400E0);
 
     return v0;
 }
@@ -687,7 +687,7 @@ void ov84_02240328(UnkStruct_ov84_0223B5A0 *param0)
     Strbuf_Free(v1);
 
     v1 = MessageLoader_GetNewStrbuf(param0->unk_114, 109);
-    StringTemplate_SetNumber(param0->unk_118, 0, Poffin_GetNumberOfFilledSlots(SaveData_GetPoffinCase(param0->unk_C4->unk_00)), 3, 1, 1);
+    StringTemplate_SetNumber(param0->unk_118, 0, PoffinCase_CountFilledSlots(SaveData_GetPoffinCase(param0->unk_C4->saveData)), 3, 1, 1);
     StringTemplate_Format(param0->unk_118, param0->unk_3F8, v1);
     Strbuf_Free(v1);
 

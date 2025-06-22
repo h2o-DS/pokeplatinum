@@ -34,10 +34,10 @@ struct UnkStruct_0207AE68_t {
     PokemonSprite *unk_1C[2];
     Party *unk_24;
     Pokemon *unk_28;
-    Options *unk_2C;
+    Options *options;
     UnkStruct_0207C8C4 *unk_30;
     GenericPointerData *unk_34;
-    OverlayManager *unk_38;
+    ApplicationManager *appMan;
     PokemonSummary *unk_3C;
     void *unk_40;
     PokemonAnimationSys *unk_44;

@@ -16,6 +16,7 @@
 #include "generated/accessories.h"
 #include "generated/first_arrival_to_zones.h"
 #include "generated/journal_location_events.h"
+#include "generated/movement_actions.h"
 #include "generated/save_types.h"
 #include "generated/signpost_commands.h"
 
@@ -23,14 +24,12 @@
 #include "struct_decls/pokedexdata_decl.h"
 #include "struct_decls/struct_02014EC4_decl.h"
 #include "struct_decls/struct_0202440C_decl.h"
-#include "struct_decls/struct_02028430_decl.h"
 #include "struct_decls/struct_0202855C_decl.h"
 #include "struct_decls/struct_020298B0_decl.h"
 #include "struct_decls/struct_02029C68_decl.h"
 #include "struct_decls/struct_02029C88_decl.h"
 #include "struct_decls/struct_02029D04_decl.h"
 #include "struct_decls/struct_0202A750_decl.h"
-#include "struct_decls/struct_0202CA1C_decl.h"
 #include "struct_decls/struct_0203A790_decl.h"
 #include "struct_decls/struct_0205C22C_decl.h"
 #include "struct_decls/struct_0205E884_decl.h"
@@ -38,6 +37,8 @@
 #include "struct_decls/struct_02061AB4_decl.h"
 #include "struct_defs/choose_starter_data.h"
 #include "struct_defs/daycare.h"
+#include "struct_defs/mail.h"
+#include "struct_defs/seal_case.h"
 #include "struct_defs/special_encounter.h"
 #include "struct_defs/struct_0202DF8C.h"
 #include "struct_defs/struct_0203D8AC.h"
@@ -62,11 +63,11 @@
 #include "overlay005/ov5_021DFB54.h"
 #include "overlay005/ov5_021EA874.h"
 #include "overlay005/ov5_021ECC20.h"
-#include "overlay005/ov5_021EE7D4.h"
 #include "overlay005/ov5_021F6454.h"
 #include "overlay005/save_info_window.h"
 #include "overlay005/scrcmd_move_tutor.h"
 #include "overlay005/signpost.h"
+#include "overlay005/size_contest.h"
 #include "overlay005/struct_ov5_021DD42C.h"
 #include "overlay005/vs_seeker.h"
 #include "overlay006/npc_trade.h"
@@ -117,6 +118,7 @@
 #include "items.h"
 #include "journal.h"
 #include "location.h"
+#include "mail.h"
 #include "map_header_data.h"
 #include "map_object.h"
 #include "map_object_move.h"
@@ -140,6 +142,7 @@
 #include "save_player.h"
 #include "savedata.h"
 #include "scrcmd_amity_square.h"
+#include "scrcmd_catching_show.h"
 #include "scrcmd_coins.h"
 #include "scrcmd_daycare.h"
 #include "scrcmd_dummy_23F_242.h"
@@ -151,6 +154,7 @@
 #include "scrcmd_shop.h"
 #include "scrcmd_sound.h"
 #include "scrcmd_system_flags.h"
+#include "screen_fade.h"
 #include "script_manager.h"
 #include "sound.h"
 #include "special_encounter.h"
@@ -165,9 +169,7 @@
 #include "text.h"
 #include "trainer_data.h"
 #include "trainer_info.h"
-#include "unk_0200F174.h"
 #include "unk_02014D38.h"
-#include "unk_02028124.h"
 #include "unk_0202854C.h"
 #include "unk_020298BC.h"
 #include "unk_0202ACE0.h"
@@ -187,7 +189,6 @@
 #include "unk_020494DC.h"
 #include "unk_0204AEE8.h"
 #include "unk_0204B64C.h"
-#include "unk_0204C500.h"
 #include "unk_0204CFFC.h"
 #include "unk_0204E240.h"
 #include "unk_0204E974.h"
@@ -500,7 +501,7 @@ static BOOL ScrCmd_152(ScriptContext *ctx);
 static BOOL ScrCmd_SetObjectEventPos(ScriptContext *ctx);
 static BOOL ScrCmd_187(ScriptContext *ctx);
 static BOOL ScrCmd_188(ScriptContext *ctx);
-static BOOL ScrCmd_189(ScriptContext *ctx);
+static BOOL ScrCmd_SetObjectEventDir(ScriptContext *ctx);
 static BOOL ScrCmd_SetWarpEventPos(ScriptContext *ctx);
 static BOOL ScrCmd_18B(ScriptContext *ctx);
 static BOOL ScrCmd_18C(ScriptContext *ctx);
@@ -556,10 +557,10 @@ static BOOL ScrCmd_1B5(ScriptContext *ctx);
 static BOOL ScrCmd_GetTimeOfDay(ScriptContext *ctx);
 static BOOL ScrCmd_GetRandom(ScriptContext *ctx);
 static BOOL ScrCmd_GetRandom2(ScriptContext *ctx);
-static BOOL ScrCmd_1C1(ScriptContext *ctx);
-static BOOL ScrCmd_1C2(ScriptContext *ctx);
-static BOOL ScrCmd_1C3(ScriptContext *ctx);
-static BOOL ScrCmd_1C4(ScriptContext *ctx);
+static BOOL ScrCmd_CalcSizeContestResult(ScriptContext *ctx);
+static BOOL ScrCmd_UpdateSizeContestRecord(ScriptContext *ctx);
+static BOOL ScrCmd_BufferPartyPokemonSize(ScriptContext *ctx);
+static BOOL ScrCmd_BufferSizeContestRecord(ScriptContext *ctx);
 static BOOL ScrCmd_InitSizeContestRecord(ScriptContext *ctx);
 static BOOL ScrCmd_GiveJournal(ScriptContext *ctx);
 static BOOL ScrCmd_CreateJournalEvent(ScriptContext *ctx);
@@ -568,7 +569,7 @@ static BOOL ScrCmd_1D2(ScriptContext *ctx);
 static BOOL ScrCmd_CanFitAccessory(ScriptContext *ctx);
 static BOOL ScrCmd_1D4(ScriptContext *ctx);
 static BOOL ScrCmd_1D5(ScriptContext *ctx);
-static BOOL ScrCmd_1D6(ScriptContext *ctx);
+static BOOL ScrCmd_CheckBackdrop(ScriptContext *ctx);
 static BOOL ScrCmd_192(ScriptContext *ctx);
 static BOOL ScrCmd_194(ScriptContext *ctx);
 static BOOL ScrCmd_195(ScriptContext *ctx);
@@ -630,7 +631,7 @@ static BOOL ScrCmd_24A(ScriptContext *ctx);
 static BOOL ScrCmd_24B(ScriptContext *ctx);
 static BOOL ScrCmd_24C(ScriptContext *ctx);
 static BOOL ScrCmd_24D(ScriptContext *ctx);
-static BOOL ScrCmd_252(ScriptContext *ctx);
+static BOOL ScrCmd_GetPCBoxesFreeSlotCount(ScriptContext *ctx);
 static BOOL ScrCmd_258(ScriptContext *ctx);
 static BOOL ScrCmd_259(ScriptContext *ctx);
 static BOOL ScrCmd_25A(ScriptContext *ctx);
@@ -1161,7 +1162,7 @@ const ScrCmdFunc Unk_020EAC58[] = {
     ScrCmd_SetObjectEventPos,
     ScrCmd_187,
     ScrCmd_188,
-    ScrCmd_189,
+    ScrCmd_SetObjectEventDir,
     ScrCmd_SetWarpEventPos,
     ScrCmd_18B,
     ScrCmd_18C,
@@ -1217,10 +1218,10 @@ const ScrCmdFunc Unk_020EAC58[] = {
     ScrCmd_GetDaycareCompatibilityLevel,
     ScrCmd_CheckDaycareHasEgg,
     ScrCmd_CheckPartyHasSpecies,
-    ScrCmd_1C1,
-    ScrCmd_1C2,
-    ScrCmd_1C3,
-    ScrCmd_1C4,
+    ScrCmd_CalcSizeContestResult,
+    ScrCmd_UpdateSizeContestRecord,
+    ScrCmd_BufferPartyPokemonSize,
+    ScrCmd_BufferSizeContestRecord,
     ScrCmd_InitSizeContestRecord,
     ScrCmd_SelectPartyMonMove,
     ScrCmd_GetSelectedPartyMonMove,
@@ -1238,7 +1239,7 @@ const ScrCmdFunc Unk_020EAC58[] = {
     ScrCmd_CanFitAccessory,
     ScrCmd_1D4,
     ScrCmd_1D5,
-    ScrCmd_1D6,
+    ScrCmd_CheckBackdrop,
     ScrCmd_1D7,
     ScrCmd_1D8,
     ScrCmd_1D9,
@@ -1362,10 +1363,10 @@ const ScrCmdFunc Unk_020EAC58[] = {
     ScrCmd_CheckForJubilifeLotteryWinner,
     ScrCmd_RandomizeJubilifeLottery,
     ScrCmd_251,
-    ScrCmd_252,
-    ScrCmd_253,
-    ScrCmd_254,
-    ScrCmd_255,
+    ScrCmd_GetPCBoxesFreeSlotCount,
+    ScrCmd_SetClearInCatchingShowFlag,
+    ScrCmd_CheckHasEnoughMonForCatchingShow,
+    ScrCmd_MoveCatchingShowMonsToPCBoxes,
     ScrCmd_CalcCatchingShowPoints,
     ScrCmd_ShowAccessoryShop,
     ScrCmd_258,
@@ -2906,27 +2907,27 @@ static BOOL ScrCmd_2A1(ScriptContext *ctx)
     int v11 = 0;
 
     if (v8 < v6) {
-        v10[v11].unk_00 = 0xf;
-        v10[v11].unk_02 = v6 - v8;
+        v10[v11].movementAction = MOVEMENT_ACTION_WALK_NORMAL_EAST;
+        v10[v11].count = v6 - v8;
         v11++;
     } else if (v8 > v6) {
-        v10[v11].unk_00 = 0xe;
-        v10[v11].unk_02 = v8 - v6;
+        v10[v11].movementAction = MOVEMENT_ACTION_WALK_NORMAL_WEST;
+        v10[v11].count = v8 - v6;
         v11++;
     }
 
     if (v9 < v7) {
-        v10[v11].unk_00 = 0xc;
-        v10[v11].unk_02 = v7 - v9;
+        v10[v11].movementAction = MOVEMENT_ACTION_WALK_NORMAL_NORTH;
+        v10[v11].count = v7 - v9;
         v11++;
     } else if (v9 > v7) {
-        v10[v11].unk_00 = 0xd;
-        v10[v11].unk_02 = v9 - v7;
+        v10[v11].movementAction = MOVEMENT_ACTION_WALK_NORMAL_SOUTH;
+        v10[v11].count = v9 - v7;
         v11++;
     }
 
-    v10[v11].unk_00 = 0xfe;
-    v10[v11].unk_02 = 0;
+    v10[v11].movementAction = MOVEMENT_ACTION_END;
+    v10[v11].count = 0;
 
     SysTask *v1 = MapObject_StartAnimation(v4, v10);
     u8 *v2 = FieldSystem_GetScriptMemberPtr(ctx->fieldSystem, SCRIPT_MANAGER_MOVEMENT_COUNT);
@@ -3388,10 +3389,10 @@ static BOOL ScrCmd_06E(ScriptContext *ctx)
 
 static BOOL ScrCmd_2AB(ScriptContext *ctx)
 {
-    u16 *v1 = ScriptContext_GetVarPointer(ctx);
+    u16 *destVar = ScriptContext_GetVarPointer(ctx);
 
-    BallSeals *v0 = SaveData_GetBallSeals(ctx->fieldSystem->saveData);
-    *v1 = sub_0202CBA8(v0);
+    SealCase *sealCase = SaveData_GetSealCase(ctx->fieldSystem->saveData);
+    *destVar = sub_0202CBA8(sealCase);
 
     return FALSE;
 }
@@ -3401,7 +3402,7 @@ static BOOL ScrCmd_093(ScriptContext *ctx)
     u16 v1 = ScriptContext_GetVar(ctx);
     u16 *v2 = ScriptContext_GetVarPointer(ctx);
 
-    BallSeals *v0 = SaveData_GetBallSeals(ctx->fieldSystem->saveData);
+    SealCase *v0 = SaveData_GetSealCase(ctx->fieldSystem->saveData);
     *v2 = sub_0202CBC8(v0, v1);
 
     return FALSE;
@@ -3412,7 +3413,7 @@ static BOOL ScrCmd_094(ScriptContext *ctx)
     u16 v0 = ScriptContext_GetVar(ctx);
     u16 v1 = ScriptContext_GetVar(ctx);
 
-    sub_0202CAE0(SaveData_GetBallSeals(ctx->fieldSystem->saveData), v0, v1);
+    sub_0202CAE0(SaveData_GetSealCase(ctx->fieldSystem->saveData), v0, v1);
     return FALSE;
 }
 
@@ -3477,7 +3478,7 @@ static BOOL ScrCmd_2D0(ScriptContext *ctx)
     u16 *v3 = ScriptContext_GetVarPointer(ctx);
     u16 *v4 = ScriptContext_GetVarPointer(ctx);
     void **v2 = FieldSystem_GetScriptMemberPtr(ctx->fieldSystem, SCRIPT_MANAGER_PARTY_MANAGEMENT_DATA);
-    PartyManagementData *v5 = *v2;
+    PartyManagementData *partyMan = *v2;
 
     GF_ASSERT(*v2 != 0);
 
@@ -3486,10 +3487,10 @@ static BOOL ScrCmd_2D0(ScriptContext *ctx)
     if (v1 == MAX_PARTY_SIZE + 1) {
         *v3 = 0xff;
     } else if (v1 == MAX_PARTY_SIZE) {
-        u16 v0 = v5->unk_2C[0];
+        u16 v0 = partyMan->unk_2C[0];
         *v3 = v0;
         *v3 -= 1;
-        v0 = v5->unk_2C[1];
+        v0 = partyMan->unk_2C[1];
         *v4 = v0;
 
         if (*v4 > 0) {
@@ -3509,7 +3510,7 @@ static BOOL ScrCmd_2D4(ScriptContext *ctx)
     u16 *v4 = ScriptContext_GetVarPointer(ctx);
     u16 *v5 = ScriptContext_GetVarPointer(ctx);
     void **v2 = FieldSystem_GetScriptMemberPtr(ctx->fieldSystem, SCRIPT_MANAGER_PARTY_MANAGEMENT_DATA);
-    PartyManagementData *v6 = *v2;
+    PartyManagementData *partyMan = *v2;
 
     GF_ASSERT(*v2 != 0);
 
@@ -3518,13 +3519,13 @@ static BOOL ScrCmd_2D4(ScriptContext *ctx)
     if (v1 == MAX_PARTY_SIZE + 1) {
         *v3 = 0xff;
     } else if (v1 == MAX_PARTY_SIZE) {
-        *v3 = v6->unk_2C[0];
+        *v3 = partyMan->unk_2C[0];
         *v3 -= 1;
 
-        *v4 = v6->unk_2C[1];
+        *v4 = partyMan->unk_2C[1];
         *v4 -= 1;
 
-        *v5 = v6->unk_2C[2];
+        *v5 = partyMan->unk_2C[2];
 
         if (*v5 > 0) {
             *v5 -= 1;
@@ -3543,7 +3544,7 @@ static BOOL ScrCmd_2DB(ScriptContext *ctx)
     u16 *v4 = ScriptContext_GetVarPointer(ctx);
     u16 *v5 = ScriptContext_GetVarPointer(ctx);
     void **v2 = FieldSystem_GetScriptMemberPtr(ctx->fieldSystem, SCRIPT_MANAGER_PARTY_MANAGEMENT_DATA);
-    PartyManagementData *v6 = *v2;
+    PartyManagementData *partyMan = *v2;
 
     GF_ASSERT(*v2 != 0);
 
@@ -3552,13 +3553,13 @@ static BOOL ScrCmd_2DB(ScriptContext *ctx)
     if (v1 == MAX_PARTY_SIZE + 1) {
         *v3 = 0xff;
     } else if (v1 == MAX_PARTY_SIZE) {
-        *v3 = v6->unk_2C[0];
+        *v3 = partyMan->unk_2C[0];
         *v3 -= 1;
 
-        *v4 = v6->unk_2C[1];
+        *v4 = partyMan->unk_2C[1];
         *v4 -= 1;
 
-        *v5 = v6->unk_2C[2];
+        *v5 = partyMan->unk_2C[2];
 
         if (*v5 > 0) {
             *v5 -= 1;
@@ -4106,7 +4107,7 @@ static BOOL ScrCmd_1D8(ScriptContext *ctx)
         return FALSE;
     }
 
-    if (Poffin_GetNumberOfFilledSlots(SaveData_GetPoffinCase(ctx->fieldSystem->saveData)) >= MAX_POFFINS) {
+    if (PoffinCase_CountFilledSlots(SaveData_GetPoffinCase(ctx->fieldSystem->saveData)) >= MAX_POFFINS) {
         *v0 = 2;
         return FALSE;
     }
@@ -4128,7 +4129,7 @@ static BOOL ScrCmd_1D9(ScriptContext *ctx)
 
     v0->unk_04 = v1;
     v0->unk_06 = v2;
-    v0->unk_00 = ctx->fieldSystem->saveData;
+    v0->saveData = ctx->fieldSystem->saveData;
 
     sub_0203D9D8(ctx->fieldSystem, *v3);
     ScriptContext_Pause(ctx, sub_02041CC8);
@@ -4141,7 +4142,7 @@ static BOOL ScrCmd_0AB(ScriptContext *ctx)
     void **v0 = FieldSystem_GetScriptMemberPtr(ctx->fieldSystem, SCRIPT_MANAGER_PARTY_MANAGEMENT_DATA);
     UnkStruct_02042434 *v1 = Heap_AllocFromHeap(HEAP_ID_FIELDMAP, sizeof(UnkStruct_02042434));
 
-    v1->unk_00 = ctx->fieldSystem->saveData;
+    v1->saveData = ctx->fieldSystem->saveData;
     v1->boxMode = ScriptContext_ReadByte(ctx);
     *v0 = v1;
 
@@ -4396,9 +4397,9 @@ static BOOL ScrCmd_FadeScreen(ScriptContext *ctx)
     u16 type = ScriptContext_ReadHalfWord(ctx);
     u16 color = ScriptContext_ReadHalfWord(ctx);
 
-    StartScreenTransition(0, type, type, color, transition, frames, HEAP_ID_FIELD);
-    sub_0200F32C(0);
-    sub_0200F32C(1);
+    StartScreenFade(FADE_BOTH_SCREENS, type, type, color, transition, frames, HEAP_ID_FIELD);
+    ResetVisibleHardwareWindows(DS_SCREEN_MAIN);
+    ResetVisibleHardwareWindows(DS_SCREEN_SUB);
 
     return FALSE;
 }
@@ -4411,7 +4412,7 @@ static BOOL ScrCmd_WaitFadeScreen(ScriptContext *ctx)
 
 static BOOL ScriptContext_ScreenWipeDone(ScriptContext *ctx)
 {
-    return IsScreenTransitionDone() == TRUE;
+    return IsScreenFadeDone() == TRUE;
 }
 
 static BOOL ScrCmd_Warp(ScriptContext *ctx)
@@ -5147,8 +5148,8 @@ static BOOL ScrCmd_2BA(ScriptContext *ctx)
 
     if (*v2 != 0) {
         void **v1 = FieldSystem_GetScriptMemberPtr(ctx->fieldSystem, SCRIPT_MANAGER_PARTY_MANAGEMENT_DATA);
-        PartyManagementData *v0 = *v1;
-        Heap_FreeToHeap(v0);
+        PartyManagementData *partyMan = *v1;
+        Heap_FreeToHeap(partyMan);
     }
 
     return FALSE;
@@ -5451,12 +5452,12 @@ static BOOL ScrCmd_188(ScriptContext *ctx)
     return FALSE;
 }
 
-static BOOL ScrCmd_189(ScriptContext *ctx)
+static BOOL ScrCmd_SetObjectEventDir(ScriptContext *ctx)
 {
-    u16 v0 = ScriptContext_GetVar(ctx);
-    u16 v1 = ScriptContext_GetVar(ctx);
+    u16 localID = ScriptContext_GetVar(ctx);
+    u16 dir = ScriptContext_GetVar(ctx);
 
-    MapHeaderData_SetObjectEventDir(ctx->fieldSystem, v0, v1);
+    MapHeaderData_SetObjectEventDir(ctx->fieldSystem, localID, dir);
     return FALSE;
 }
 
@@ -5769,10 +5770,10 @@ static BOOL ScrCmd_1B3(ScriptContext *ctx)
 static BOOL ScrCmd_1B4(ScriptContext *ctx)
 {
     FieldSystem *fieldSystem = ctx->fieldSystem;
-    u16 *v1 = ScriptContext_GetVarPointer(ctx);
-    MailBox *v2 = SaveData_GetMailBox(fieldSystem->saveData);
+    u16 *destVar = ScriptContext_GetVarPointer(ctx);
+    Mailbox *mailbox = SaveData_GetMailbox(fieldSystem->saveData);
 
-    *v1 = (u16)sub_02028494(v2, 0);
+    *destVar = (u16)sub_02028494(mailbox, 0);
     return FALSE;
 }
 
@@ -5813,46 +5814,46 @@ static BOOL ScrCmd_GetRandom2(ScriptContext *ctx)
     return TRUE;
 }
 
-static BOOL ScrCmd_1C1(ScriptContext *ctx)
+static BOOL ScrCmd_CalcSizeContestResult(ScriptContext *ctx)
 {
     FieldSystem *fieldSystem = ctx->fieldSystem;
-    u16 *v1 = ScriptContext_GetVarPointer(ctx);
-    u16 v2 = ScriptContext_GetVar(ctx);
+    u16 *destVar = ScriptContext_GetVarPointer(ctx);
+    u16 partySlot = ScriptContext_GetVar(ctx);
 
-    *v1 = ov5_021EE920(fieldSystem, v2);
+    *destVar = SizeContest_CalcResultForPartyMon(fieldSystem, partySlot);
 
     return FALSE;
 }
 
-static BOOL ScrCmd_1C2(ScriptContext *ctx)
+static BOOL ScrCmd_UpdateSizeContestRecord(ScriptContext *ctx)
 {
     FieldSystem *fieldSystem = ctx->fieldSystem;
-    u16 v2 = ScriptContext_GetVar(ctx);
+    u16 partySlot = ScriptContext_GetVar(ctx);
 
-    ov5_021EE9BC(fieldSystem, v2);
+    SizeContest_UpdateRecordFromPartyMon(fieldSystem, partySlot);
 
     return FALSE;
 }
 
-static BOOL ScrCmd_1C3(ScriptContext *ctx)
+static BOOL ScrCmd_BufferPartyPokemonSize(ScriptContext *ctx)
 {
     FieldSystem *fieldSystem = ctx->fieldSystem;
-    u16 v1 = ScriptContext_GetVar(ctx);
-    u16 v2 = ScriptContext_GetVar(ctx);
-    u16 v3 = ScriptContext_GetVar(ctx);
+    u16 intPartIdx = ScriptContext_GetVar(ctx);
+    u16 fracPartIdx = ScriptContext_GetVar(ctx);
+    u16 partySlot = ScriptContext_GetVar(ctx);
 
-    ov5_021EEA84(fieldSystem, v1, v2, v3);
+    SizeContest_SetPartyMonSizeStrParams(fieldSystem, intPartIdx, fracPartIdx, partySlot);
     return FALSE;
 }
 
-static BOOL ScrCmd_1C4(ScriptContext *ctx)
+static BOOL ScrCmd_BufferSizeContestRecord(ScriptContext *ctx)
 {
     FieldSystem *fieldSystem = ctx->fieldSystem;
-    u16 v1 = ScriptContext_GetVar(ctx);
-    u16 v2 = ScriptContext_GetVar(ctx);
-    u16 v3 = ScriptContext_GetVar(ctx);
+    u16 intPartIdx = ScriptContext_GetVar(ctx);
+    u16 fracPartIdx = ScriptContext_GetVar(ctx);
+    u16 species = ScriptContext_GetVar(ctx);
 
-    ov5_021EEA54(fieldSystem, v1, v2, v3);
+    SizeContest_SetRecordSizeStrParams(fieldSystem, intPartIdx, fracPartIdx, species);
     return FALSE;
 }
 
@@ -5981,14 +5982,14 @@ static BOOL ScrCmd_1D5(ScriptContext *ctx)
     return FALSE;
 }
 
-static BOOL ScrCmd_1D6(ScriptContext *ctx)
+static BOOL ScrCmd_CheckBackdrop(ScriptContext *ctx)
 {
-    u16 v2 = ScriptContext_GetVar(ctx);
-    u16 *v3 = ScriptContext_GetVarPointer(ctx);
+    u16 backdrop = ScriptContext_GetVar(ctx);
+    u16 *destVar = ScriptContext_GetVarPointer(ctx);
 
     UnkStruct_0202A750 *v0 = sub_0202A750(ctx->fieldSystem->saveData);
     UnkStruct_02029D04 *v1 = sub_02029D04(v0);
-    *v3 = sub_02029D80(v1, v2);
+    *destVar = sub_02029D80(v1, backdrop);
 
     return FALSE;
 }
@@ -6455,11 +6456,11 @@ static BOOL ScrCmd_249(ScriptContext *ctx)
 static BOOL ScrCmd_24A(ScriptContext *ctx)
 {
     FieldSystem *fieldSystem = ctx->fieldSystem;
-    SaveData *v1 = fieldSystem->saveData;
+    SaveData *saveData = fieldSystem->saveData;
     SecretBaseRecord *v2;
     u16 *v3 = ScriptContext_GetVarPointer(ctx);
 
-    v2 = SaveData_SecretBaseRecord(v1);
+    v2 = SaveData_SecretBaseRecord(saveData);
     *v3 = sub_020295B8(v2);
 
     return FALSE;
@@ -6514,11 +6515,11 @@ static BOOL ScrCmd_WriteSpeciesSeen(ScriptContext *ctx)
     return FALSE;
 }
 
-static BOOL ScrCmd_252(ScriptContext *ctx)
+static BOOL ScrCmd_GetPCBoxesFreeSlotCount(ScriptContext *ctx)
 {
-    u16 *v0 = ScriptContext_GetVarPointer(ctx);
-    u16 v1 = PCBoxes_CountAllBoxMons(SaveData_GetPCBoxes(ctx->fieldSystem->saveData));
-    *v0 = 18 * (5 * 6) - v1;
+    u16 *destVar = ScriptContext_GetVarPointer(ctx);
+    u16 boxMonCount = PCBoxes_CountAllBoxMons(SaveData_GetPCBoxes(ctx->fieldSystem->saveData));
+    *destVar = MAX_PC_BOXES * MAX_MONS_PER_BOX - boxMonCount;
 
     return FALSE;
 }
@@ -7063,14 +7064,14 @@ static BOOL ScrCmd_289(ScriptContext *ctx)
     }
 
     u8 v4 = ScriptContext_GetVar(ctx);
-    Poffin *v0 = Poffin_New(HEAP_ID_FIELD);
-    int v1 = sub_0202A9E4(v0, v3, v4, FALSE);
-    PoffinCase *v2 = SaveData_GetPoffinCase(ctx->fieldSystem->saveData);
-    u16 v5 = Poffin_AddToCase(v2, v0);
+    Poffin *poffin = Poffin_New(HEAP_ID_FIELD);
+    int v1 = sub_0202A9E4(poffin, v3, v4, FALSE);
+    PoffinCase *poffinCase = SaveData_GetPoffinCase(ctx->fieldSystem->saveData);
+    u16 slotId = PoffinCase_AddPoffin(poffinCase, poffin);
 
-    Heap_FreeToHeap(v0);
+    Heap_FreeToHeap(poffin);
 
-    if (v5 == POFFIN_NONE) {
+    if (slotId == POFFIN_NONE) {
         *v6 = 0xffff;
     } else {
         *v6 = v1;
@@ -7084,7 +7085,7 @@ static BOOL ScrCmd_28A(ScriptContext *ctx)
     u16 *v1 = ScriptContext_GetVarPointer(ctx);
     PoffinCase *poffinCase = SaveData_GetPoffinCase(ctx->fieldSystem->saveData);
 
-    if (Poffin_GetEmptyCaseSlot(poffinCase) == POFFIN_NONE) {
+    if (PoffinCase_GetEmptySlot(poffinCase) == POFFIN_NONE) {
         *v1 = 0;
     } else {
         *v1 = 1;
@@ -7097,7 +7098,7 @@ static BOOL ScrCmd_307(ScriptContext *ctx)
 {
     u16 *v1 = ScriptContext_GetVarPointer(ctx);
     PoffinCase *poffinCase = SaveData_GetPoffinCase(ctx->fieldSystem->saveData);
-    *v1 = Poffin_GetNumberOfEmptySlots(poffinCase);
+    *v1 = PoffinCase_CountEmptySlots(poffinCase);
 
     return FALSE;
 }
@@ -7426,7 +7427,7 @@ static BOOL ScrCmd_2C4(ScriptContext *ctx)
 {
     void **v0 = FieldSystem_GetScriptMemberPtr(ctx->fieldSystem, SCRIPT_MANAGER_PARTY_MANAGEMENT_DATA);
     u8 v1 = ScriptContext_ReadByte(ctx);
-    UnkStruct_ov104_02230BE4 *v2 = Heap_AllocFromHeapAtEnd(11, sizeof(UnkStruct_ov104_02230BE4));
+    UnkStruct_ov104_02230BE4 *v2 = Heap_AllocFromHeapAtEnd(HEAP_ID_FIELDMAP, sizeof(UnkStruct_ov104_02230BE4));
 
     MI_CpuClear8(v2, sizeof(UnkStruct_ov104_02230BE4));
 

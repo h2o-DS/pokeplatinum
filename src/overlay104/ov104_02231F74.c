@@ -40,6 +40,7 @@
 #include "render_text.h"
 #include "render_window.h"
 #include "save_player.h"
+#include "screen_fade.h"
 #include "sound_playback.h"
 #include "sprite.h"
 #include "sprite_system.h"
@@ -50,7 +51,6 @@
 #include "sys_task_manager.h"
 #include "system.h"
 #include "text.h"
-#include "unk_0200F174.h"
 #include "unk_020131EC.h"
 #include "unk_02014A84.h"
 #include "unk_0207E0B8.h"
@@ -231,7 +231,7 @@ static void ov104_0223214C(UnkStruct_ov104_022320B4 *param0, UnkStruct_ov104_022
     int v0;
 
     if (param8 == NULL) {
-        param1->unk_8C = MessageLoader_Init(MESSAGE_LOADER_NARC_HANDLE, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_COMMON_STRINGS_2, param0->heapID);
+        param1->unk_8C = MessageLoader_Init(MESSAGE_LOADER_NARC_HANDLE, NARC_INDEX_MSGDATA__PL_MSG, TEXT_BANK_MENU_ENTRIES, param0->heapID);
         param1->unk_97_1 = 1;
     } else {
         param1->unk_8C = param8;
@@ -396,7 +396,7 @@ static void ov104_022324C8(SysTask *param0, void *param1)
         return;
     }
 
-    if (IsScreenTransitionDone() == 0) {
+    if (IsScreenFadeDone() == FALSE) {
         return;
     }
 
@@ -616,7 +616,7 @@ static void ov104_0223296C(SysTask *param0, void *param1)
         return;
     }
 
-    if (IsScreenTransitionDone() == 0) {
+    if (IsScreenFadeDone() == FALSE) {
         return;
     }
 
