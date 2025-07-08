@@ -32,6 +32,7 @@
 #include "text.h"
 #include "vram_transfer.h"
 
+#include "res/graphics/pokedex/zukan.naix.h"
 #include "res/text/bank/pokedex.h"
 
 typedef struct {
@@ -421,34 +422,34 @@ static void ov21_021E92B0(PokedexSpeciesLabel *pokedexSpeciesLabel)
 
 static void ov21_021E92C4(SpriteResource **param0, SpriteResourceCollection **param1, int param2, int param3, int param4, int param5, int param6, int param7, int param8, int param9)
 {
-    param0[0] = SpriteResourceCollection_AddTiles(param1[0], param3, param4, 1, param9, NNS_G2D_VRAM_TYPE_2DMAIN, param2);
+    param0[0] = SpriteResourceCollection_AddTiles(param1[0], param3, param4, TRUE, param9, NNS_G2D_VRAM_TYPE_2DMAIN, param2);
 
     SpriteTransfer_RequestCharAtEnd(param0[0]);
     SpriteResource_ReleaseData(param0[0]);
 
-    param0[1] = SpriteResourceCollection_AddPalette(param1[1], param3, param5, 0, param9, NNS_G2D_VRAM_TYPE_2DMAIN, param8, param2);
+    param0[1] = SpriteResourceCollection_AddPalette(param1[1], param3, param5, FALSE, param9, NNS_G2D_VRAM_TYPE_2DMAIN, param8, param2);
 
     SpriteTransfer_RequestPlttFreeSpace(param0[1]);
     SpriteResource_ReleaseData(param0[1]);
 
-    param0[2] = SpriteResourceCollection_Add(param1[2], param3, param6, 1, param9, 2, param2);
-    param0[3] = SpriteResourceCollection_Add(param1[3], param3, param7, 1, param9, 3, param2);
+    param0[2] = SpriteResourceCollection_Add(param1[2], param3, param6, TRUE, param9, SPRITE_RESOURCE_CELL, param2);
+    param0[3] = SpriteResourceCollection_Add(param1[3], param3, param7, TRUE, param9, SPRITE_RESOURCE_ANIM, param2);
 }
 
 static void ov21_021E9344(SpriteResource **param0, SpriteResourceCollection **param1, int param2, NARC *param3, int param4, int param5, int param6, int param7, int param8, int param9)
 {
-    param0[0] = SpriteResourceCollection_AddTilesFrom(param1[0], param3, param4, 1, param9, NNS_G2D_VRAM_TYPE_2DMAIN, param2);
+    param0[0] = SpriteResourceCollection_AddTilesFrom(param1[0], param3, param4, TRUE, param9, NNS_G2D_VRAM_TYPE_2DMAIN, param2);
 
     SpriteTransfer_RequestCharAtEnd(param0[0]);
     SpriteResource_ReleaseData(param0[0]);
 
-    param0[1] = SpriteResourceCollection_AddPaletteFrom(param1[1], param3, param5, 0, param9, NNS_G2D_VRAM_TYPE_2DMAIN, param8, param2);
+    param0[1] = SpriteResourceCollection_AddPaletteFrom(param1[1], param3, param5, FALSE, param9, NNS_G2D_VRAM_TYPE_2DMAIN, param8, param2);
 
     SpriteTransfer_RequestPlttFreeSpace(param0[1]);
     SpriteResource_ReleaseData(param0[1]);
 
-    param0[2] = SpriteResourceCollection_AddFrom(param1[2], param3, param6, 1, param9, 2, param2);
-    param0[3] = SpriteResourceCollection_AddFrom(param1[3], param3, param7, 1, param9, 3, param2);
+    param0[2] = SpriteResourceCollection_AddFrom(param1[2], param3, param6, TRUE, param9, SPRITE_RESOURCE_CELL, param2);
+    param0[3] = SpriteResourceCollection_AddFrom(param1[3], param3, param7, TRUE, param9, SPRITE_RESOURCE_ANIM, param2);
 }
 
 static void ov21_021E93C4(SpriteResource **param0, SpriteResourceCollection **param1)
@@ -563,7 +564,7 @@ static void ov21_021E95B0(UnkStruct_ov21_021E95B0 *param0)
 
 static void ov21_021E95BC(UnkStruct_ov21_021E968C *param0, SpriteResourceCollection **param1, int param2, int param3, NARC *param4)
 {
-    ov21_021E9344(param0->unk_08, param1, param3, param4, 90, 13, 88, 89, 5, 17000);
+    ov21_021E9344(param0->unk_08, param1, param3, param4, type_icons_NCGR_lz, type_icons_NCLR, type_icons_cell_NCER_lz, type_icons_anim_NANR_lz, 5, 17000);
 }
 
 static void ov21_021E95EC(UnkStruct_ov21_021E968C *param0, SpriteResourceCollection **param1)
@@ -620,25 +621,25 @@ static void ov21_021E96A8(BgConfig *param0, int param1, NARC *param2)
     void *v0;
     NNSG2dScreenData *v1;
 
-    Graphics_LoadPaletteFromOpenNARC(param2, 6, 0, 0, 0, param1);
-    Graphics_LoadTilesToBgLayerFromOpenNARC(param2, 33, param0, 3, 0, 0, 1, param1);
+    Graphics_LoadPaletteFromOpenNARC(param2, weight_scale_NCLR, 0, 0, 0, param1);
+    Graphics_LoadTilesToBgLayerFromOpenNARC(param2, entry_main_NCGR_lz, param0, 3, 0, 0, TRUE, param1);
 
-    v0 = Graphics_GetScrnDataFromOpenNARC(param2, 50, 1, &v1, param1);
+    v0 = Graphics_GetScrnDataFromOpenNARC(param2, info_main_NSCR_lz, TRUE, &v1, param1);
 
     Bg_LoadToTilemapRect(param0, 3, v1->rawData, 0, 0, v1->screenWidth / 8, v1->screenHeight / 8);
     Heap_FreeToHeap(v0);
 
-    v0 = Graphics_GetScrnDataFromOpenNARC(param2, 51, 1, &v1, param1);
+    v0 = Graphics_GetScrnDataFromOpenNARC(param2, info_species_window_NSCR_lz, TRUE, &v1, param1);
 
     Bg_LoadToTilemapRect(param0, 3, v1->rawData, 0, 3, v1->screenWidth / 8, v1->screenHeight / 8);
     Heap_FreeToHeap(v0);
 
-    v0 = Graphics_GetScrnDataFromOpenNARC(param2, 52, 1, &v1, param1);
+    v0 = Graphics_GetScrnDataFromOpenNARC(param2, info_footprint_window_NSCR_lz, TRUE, &v1, param1);
 
     Bg_LoadToTilemapRect(param0, 3, v1->rawData, 12, 8, v1->screenWidth / 8, v1->screenHeight / 8);
     Heap_FreeToHeap(v0);
 
-    v0 = Graphics_GetScrnDataFromOpenNARC(param2, 54, 1, &v1, param1);
+    v0 = Graphics_GetScrnDataFromOpenNARC(param2, info_entry_window_NSCR_lz, TRUE, &v1, param1);
 
     Bg_LoadToTilemapRect(param0, 3, v1->rawData, 0, 16, v1->screenWidth / 8, v1->screenHeight / 8);
     Heap_FreeToHeap(v0);
@@ -650,9 +651,9 @@ static void ov21_021E97C4(BgConfig *param0, int param1, NARC *param2)
     void *v0;
     NNSG2dScreenData *v1;
 
-    Graphics_LoadTilesToBgLayerFromOpenNARC(param2, 33, param0, 2, 0, 0, 1, param1);
+    Graphics_LoadTilesToBgLayerFromOpenNARC(param2, entry_main_NCGR_lz, param0, 2, 0, 0, TRUE, param1);
 
-    v0 = Graphics_GetScrnDataFromOpenNARC(param2, 57, 1, &v1, param1);
+    v0 = Graphics_GetScrnDataFromOpenNARC(param2, banner_local_NSCR_lz, TRUE, &v1, param1);
 
     Bg_LoadToTilemapRect(param0, 2, v1->rawData, 0, 0, v1->screenWidth / 8, v1->screenHeight / 8);
     Heap_FreeToHeap(v0);
@@ -770,12 +771,12 @@ static void ov21_021E9A40(UnkStruct_ov21_021E9A9C *param0, int param1, int param
     int v0;
 
     if (param2 == 0) {
-        param0->unk_00[0] = Graphics_GetPlttDataFromOpenNARC(param3, 23, &param0->unk_08[0], param1);
+        param0->unk_00[0] = Graphics_GetPlttDataFromOpenNARC(param3, banner_local_NCLR, &param0->unk_08[0], param1);
     } else {
-        param0->unk_00[0] = Graphics_GetPlttDataFromOpenNARC(param3, 24, &param0->unk_08[0], param1);
+        param0->unk_00[0] = Graphics_GetPlttDataFromOpenNARC(param3, banner_national_NCLR, &param0->unk_08[0], param1);
     }
 
-    param0->unk_00[1] = Graphics_GetPlttDataFromOpenNARC(param3, 26, &param0->unk_08[1], param1);
+    param0->unk_00[1] = Graphics_GetPlttDataFromOpenNARC(param3, dummy2_NCLR, &param0->unk_08[1], param1);
     param0->unk_10 = 0;
     param0->unk_1C = 0;
 

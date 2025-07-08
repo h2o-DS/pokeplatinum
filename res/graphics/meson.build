@@ -1,4 +1,5 @@
 subdir('options_menu')
+subdir('pokedex')
 subdir('pokemon_summary_screen')
 subdir('shop_menu')
 subdir('signposts')

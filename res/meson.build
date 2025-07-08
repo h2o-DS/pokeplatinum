@@ -51,6 +51,11 @@ ncgr_gen = generator(nitrogfx_exe,
     output: '@BASENAME@.NCGR',
 )
 
+ncgr_lz_gen = generator(nitrogfx_exe,
+    arguments: [ '@INPUT@', '@OUTPUT@', '@EXTRA_ARGS@', ],
+    output: '@BASENAME@.NCGR.lz',
+)
+
 nclr_gen = generator(nitrogfx_exe,
     arguments: [ '@INPUT@', '@OUTPUT@', '@EXTRA_ARGS@', ],
     output: '@BASENAME@.NCLR',
@@ -61,9 +66,24 @@ ncer_gen = generator(nitrogfx_exe,
     output: '@BASENAME@.NCER'
 )
 
+ncer_lz_gen = generator(nitrogfx_exe,
+    arguments: [ '@INPUT@', '@OUTPUT@', '@EXTRA_ARGS@', ],
+    output: '@BASENAME@.NCER.lz'
+)
+
 nanr_gen = generator(nitrogfx_exe,
     arguments: [ '@INPUT@', '@OUTPUT@', '@EXTRA_ARGS@', ],
     output: '@BASENAME@.NANR'
+)
+
+nanr_lz_gen = generator(nitrogfx_exe,
+    arguments: [ '@INPUT@', '@OUTPUT@', '@EXTRA_ARGS@', ],
+    output: '@BASENAME@.NANR.lz'
+)
+
+lz_gen = generator(nitrogfx_exe,
+    arguments: [ '@INPUT@', '@OUTPUT@', '@EXTRA_ARGS@', ],
+    output: '@PLAINNAME@.lz'
 )
 
 subdir('battle')

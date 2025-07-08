@@ -12,6 +12,8 @@
 #include "unk_02012744.h"
 #include "unk_02015064.h"
 
+#include "res/graphics/pokedex/zukan.naix.h"
+
 static void InitBackgrounds(BgConfig *bgConfig, enum HeapId heapID);
 static void FreeBackgrounds(BgConfig *bgConfig);
 static void InitWindow(PokedexGraphicData *pokedexGraphicData, enum HeapId heapID);
@@ -731,34 +733,34 @@ static void InitSpeciesLabelGraphics(PokedexGraphicData *pokedexGraphicData, enu
     PokedexSpeciesLabel *pokedexSpeciesLabel = &pokedexGraphicData->pokedexSpeciesLabel;
     NARC *pokedexGraphicsNARC = PokedexGraphics_GetNARC(pokedexGraphicData);
 
-    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CHAR] = SpriteResourceCollection_AddTilesFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], pokedexGraphicsNARC, 78, 1, 3000, NNS_G2D_VRAM_TYPE_2DMAIN, heapID);
+    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CHAR] = SpriteResourceCollection_AddTilesFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], pokedexGraphicsNARC, name_tag_NCGR_lz, TRUE, 3000, NNS_G2D_VRAM_TYPE_2DMAIN, heapID);
 
     SpriteTransfer_RequestCharAtEnd(pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CHAR]);
     SpriteResource_ReleaseData(pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CHAR]);
 
-    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_PLTT] = SpriteResourceCollection_AddPaletteFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], pokedexGraphicsNARC, 3, 0, 3000, NNS_G2D_VRAM_TYPE_2DMAIN, 1, heapID);
+    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_PLTT] = SpriteResourceCollection_AddPaletteFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], pokedexGraphicsNARC, buttons_NCLR, FALSE, 3000, NNS_G2D_VRAM_TYPE_2DMAIN, 1, heapID);
 
     SpriteTransfer_RequestPlttFreeSpace(pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_PLTT]);
     SpriteResource_ReleaseData(pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_PLTT]);
 
-    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CELL] = SpriteResourceCollection_AddFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], pokedexGraphicsNARC, 76, 1, 3000, 2, heapID);
-    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_ANIM] = SpriteResourceCollection_AddFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], pokedexGraphicsNARC, 77, 1, 3000, 3, heapID);
+    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CELL] = SpriteResourceCollection_AddFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], pokedexGraphicsNARC, name_tag_cell_NCER_lz, TRUE, 3000, SPRITE_RESOURCE_CELL, heapID);
+    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_ANIM] = SpriteResourceCollection_AddFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], pokedexGraphicsNARC, name_tag_anim_NANR_lz, TRUE, 3000, SPRITE_RESOURCE_ANIM, heapID);
 }
 
 void PokedexGraphics_InitSpeciesLabelGraphics(PokedexSpeciesLabel *pokedexSpeciesLabel, SpriteResourceCollection **spriteResourceCollection, enum HeapId heapID, NARC *narc)
 {
-    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CHAR] = SpriteResourceCollection_AddTilesFrom(spriteResourceCollection[SPRITE_RESOURCE_CHAR], narc, 78, 1, 3000, NNS_G2D_VRAM_TYPE_2DMAIN, heapID);
+    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CHAR] = SpriteResourceCollection_AddTilesFrom(spriteResourceCollection[SPRITE_RESOURCE_CHAR], narc, name_tag_NCGR_lz, TRUE, 3000, NNS_G2D_VRAM_TYPE_2DMAIN, heapID);
 
     SpriteTransfer_RequestCharAtEnd(pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CHAR]);
     SpriteResource_ReleaseData(pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CHAR]);
 
-    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_PLTT] = SpriteResourceCollection_AddPaletteFrom(spriteResourceCollection[SPRITE_RESOURCE_PLTT], narc, 3, 0, 3000, NNS_G2D_VRAM_TYPE_2DMAIN, 1, heapID);
+    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_PLTT] = SpriteResourceCollection_AddPaletteFrom(spriteResourceCollection[SPRITE_RESOURCE_PLTT], narc, buttons_NCLR, FALSE, 3000, NNS_G2D_VRAM_TYPE_2DMAIN, 1, heapID);
 
     SpriteTransfer_RequestPlttFreeSpace(pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_PLTT]);
     SpriteResource_ReleaseData(pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_PLTT]);
 
-    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CELL] = SpriteResourceCollection_AddFrom(spriteResourceCollection[SPRITE_RESOURCE_CELL], narc, 76, 1, 3000, 2, heapID);
-    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_ANIM] = SpriteResourceCollection_AddFrom(spriteResourceCollection[SPRITE_RESOURCE_ANIM], narc, 77, 1, 3000, 3, heapID);
+    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_CELL] = SpriteResourceCollection_AddFrom(spriteResourceCollection[SPRITE_RESOURCE_CELL], narc, name_tag_cell_NCER_lz, TRUE, 3000, SPRITE_RESOURCE_CELL, heapID);
+    pokedexSpeciesLabel->spriteResource[SPRITE_RESOURCE_ANIM] = SpriteResourceCollection_AddFrom(spriteResourceCollection[SPRITE_RESOURCE_ANIM], narc, name_tag_anim_NANR_lz, TRUE, 3000, SPRITE_RESOURCE_ANIM, heapID);
 }
 
 static void FreeSpeciesLabelGraphics(PokedexGraphicData *pokedexGraphicData)
@@ -899,18 +901,18 @@ static void InitCursorGraphics(PokedexGraphicData *pokedexGraphicData, enum Heap
     PokedexCursorGraphics *pokedexCursorGraphics = &pokedexGraphicData->cursorGraphics;
     NARC *pokedexGraphicsNARC = PokedexGraphics_GetNARC(pokedexGraphicData);
 
-    pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_CHAR] = SpriteResourceCollection_AddTilesFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], pokedexGraphicsNARC, 119, 1, 12000, NNS_G2D_VRAM_TYPE_2DSUB, heapID);
+    pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_CHAR] = SpriteResourceCollection_AddTilesFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_CHAR], pokedexGraphicsNARC, cursor_NCGR_lz, TRUE, 12000, NNS_G2D_VRAM_TYPE_2DSUB, heapID);
 
     SpriteTransfer_RequestCharAtEnd(pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_CHAR]);
     SpriteResource_ReleaseData(pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_CHAR]);
 
-    pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_PLTT] = SpriteResourceCollection_AddPaletteFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], pokedexGraphicsNARC, 21, 0, 12000, NNS_G2D_VRAM_TYPE_2DSUB, 1, heapID);
+    pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_PLTT] = SpriteResourceCollection_AddPaletteFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_PLTT], pokedexGraphicsNARC, cursor_NCLR, FALSE, 12000, NNS_G2D_VRAM_TYPE_2DSUB, 1, heapID);
 
     SpriteTransfer_RequestPlttFreeSpace(pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_PLTT]);
     SpriteResource_ReleaseData(pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_PLTT]);
 
-    pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_CELL] = SpriteResourceCollection_AddFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], pokedexGraphicsNARC, 120, 1, 12000, 2, heapID);
-    pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_ANIM] = SpriteResourceCollection_AddFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], pokedexGraphicsNARC, 118, 1, 12000, 3, heapID);
+    pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_CELL] = SpriteResourceCollection_AddFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_CELL], pokedexGraphicsNARC, cursor_cell_NCER_lz, TRUE, 12000, SPRITE_RESOURCE_CELL, heapID);
+    pokedexCursorGraphics->spriteResource[SPRITE_RESOURCE_ANIM] = SpriteResourceCollection_AddFrom(pokedexGraphicData->spriteResourceCollection[SPRITE_RESOURCE_ANIM], pokedexGraphicsNARC, cursor_anim_NANR_lz, TRUE, 12000, SPRITE_RESOURCE_ANIM, heapID);
 }
 
 static void FreeCursorGraphics(PokedexGraphicData *pokedexGraphicData)
