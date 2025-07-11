@@ -121,7 +121,7 @@ with open(output_dir / 'pokefoot.order', "w", encoding="utf-8") as order_file:
             '-version101',
             '-clobbersize',
             '-mappingtype', '128',
-            '-cell', cell_key_file,
+            #'-cell', cell_key_file,
         ])
 
         src = dst

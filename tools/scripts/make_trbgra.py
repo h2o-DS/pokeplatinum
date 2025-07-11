@@ -80,17 +80,18 @@ with open(output_dir / 'trbgra.order', "w", encoding="utf-8") as order_file:
                 '-vram',
                 '-clobbersize',
                 '-mappingtype', '64',
-                '-cell', key_file,
+                #'-cell', key_file,
             ])
             
             # palette
             pal_file = f'back_{subdir}.NCLR'
-            src = source_dir / subdir / 'back.png'
+            src = source_dir / subdir / 'back.pal'
             dst = private_dir / pal_file
             subprocess.run([
                 args.nitrogfx,
                 src,
                 dst,
+                '-bitdepth', '4',
             ])
             
             # anim

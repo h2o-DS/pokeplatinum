@@ -85,7 +85,7 @@ for i, subdir in enumerate(TRAINER_DIRS):
                 '-version101',
                 '-clobbersize',
                 '-mappingtype', '128',
-                '-cell', cell_file,
+                #'-cell', cell_file,
             ])
         else:
             subprocess.run([
@@ -94,7 +94,7 @@ for i, subdir in enumerate(TRAINER_DIRS):
                 dst,
                 '-version101',
                 '-clobbersize',
-                '-cell', cell_file,
+                #'-cell', cell_file,
             ])
         
         # anim
@@ -181,7 +181,7 @@ for file_name in sorted(os.listdir(source_dir / '.shared'), reverse=True):
                 '-version101',
                 '-clobbersize',
                 '-mappingtype', '128',
-                '-cell', key_file,
+                #'-cell', key_file,
             ])
         elif 'dummy_banner' in file_name:
             subprocess.run([
@@ -199,7 +199,7 @@ for file_name in sorted(os.listdir(source_dir / '.shared'), reverse=True):
                 dst,
                 '-version101',
                 '-clobbersize',
-                '-cell', key_file,
+                #'-cell', key_file,
             ])
     else:
         dst = private_dir / file_name

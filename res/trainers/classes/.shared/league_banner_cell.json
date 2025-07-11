@@ -2,6 +2,7 @@
 	"labelEnabled":	true,
 	"extended":	true,
 	"vramTransferEnabled":	false,
+	"ucatEnabled":	false,
 	"cellCount":	23,
 	"mappingType":	0,
 	"cells":	[{

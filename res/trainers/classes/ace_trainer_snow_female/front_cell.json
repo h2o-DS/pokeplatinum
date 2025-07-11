@@ -2,6 +2,7 @@
 	"labelEnabled":	true,
 	"extended":	true,
 	"vramTransferEnabled":	true,
+	"ucatEnabled":	true,
 	"cellCount":	1,
 	"mappingType":	1,
 	"cells":	[{
@@ -145,5 +146,6 @@
 	"transferData":	[{
 			"offset":	0,
 			"size":	3200
-		}]
+		}],
+	"cellAttributes":	[0]
 }
