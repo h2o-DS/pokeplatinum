@@ -104,6 +104,20 @@ form_sprites_order = form_registry[2]
 # 3. Walk species subdirectories; `species_dirnames` is the authority.
 foreach species : species_dirnames
     subdir(species)
+
+    # add species graphics
+    if fs.exists(species / 'female_front.png')
+        pokegra_files += files(species/'female_front.png')
+    endif
+    if fs.exists(species / 'female_back.png')
+        pokegra_files += files(species/'female_back.png')
+    endif
+    if fs.exists(species / 'male_front.png')
+        pokegra_files += files(species/'male_front.png')
+    endif
+    if fs.exists(species / 'male_back.png')
+        pokegra_files += files(species/'male_back.png')
+    endif
     if fs.exists(species / 'shiny.pal')
         pl_pokegra_pal += files(species/'normal.pal', species/'shiny.pal')
     endif
