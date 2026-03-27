@@ -9,7 +9,7 @@ pokegra_files += files('male_front.png')
 
 # Species 000 has special palettes; they are included here in their raw form,
 # rather than being derived from the decompiled PNGs.
-pokegra_files += files('normal_pal.NCLR')
-pokegra_files += files('shiny_pal.NCLR')
+none_NCLR += files('normal.NCLR')
+none_NCLR += files('shiny.NCLR')
 
 pokefoot_files += files('footprint.png')

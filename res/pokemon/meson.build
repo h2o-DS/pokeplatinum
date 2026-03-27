@@ -58,6 +58,8 @@ form_sprites_shared = files(
 )
 
 pokefoot_files = []
+pl_pokegra_pal = []
+none_NCLR = []
 
 sinnoh_pokedex = files('sinnoh_pokedex.json')
 pl_growtbl_files = files('.shared/exp_tables.csv')
@@ -102,6 +104,9 @@ form_sprites_order = form_registry[2]
 # 3. Walk species subdirectories; `species_dirnames` is the authority.
 foreach species : species_dirnames
     subdir(species)
+    if fs.exists(species / 'shiny.pal')
+        pl_pokegra_pal += files(species/'normal.pal', species/'shiny.pal')
+    endif
 endforeach
 
 # Stash the listing of species in an environment so that other processes can make
@@ -197,6 +202,7 @@ species_data = custom_target('species_data',
         'species_footprint_types.h',
         'species_egg_moves.h',
         'species_icon_palettes.h',
+        'pl_pokegra.order',
     ],
 
     command: [
@@ -218,6 +224,7 @@ h_headers += species_data[9]
 h_headers += species_data[10]
 h_headers += species_data[11]
 h_headers += species_data[12]
+pl_pokegra_order = species_data[13]
 
 
 # OLD NARCs
@@ -244,20 +251,48 @@ pl_poke_icon_narc = custom_target('pl_poke_icon.narc',
 )
 naix_headers += pl_poke_icon_narc[1]
 
+pl_pokegra_ncgr = ncgr_gen.process(
+    pokegra_files,
+    extra_args: [
+        '-encodefronttoback',
+        '-scan',
+    ],
+    preserve_path_from: pokemon_data_root,
+)
+pl_pokegra_nclr = nclr_gen.process(
+    pl_pokegra_pal,
+    extra_args: [
+        '-bitdepth', '8',
+        '-nopad',
+        '-comp', '10'
+    ],
+    preserve_path_from: pokemon_data_root,
+)
+pl_pokegra_none_nclr = copy_gen.process(
+    none_NCLR,
+    preserve_path_from: pokemon_data_root,
+)
+
 pl_pokegra_narc = custom_target('pl_pokegra.narc',
-    output: 'pl_pokegra.narc',
-    input: pokegra_files,
-    env: species_env,
-    depends: [ py_consts_generators ],
+    output: [
+        'pl_pokegra.narc',
+        'pl_pokegra.naix',
+    ],
+    input: [
+        pl_pokegra_ncgr,
+        pl_pokegra_nclr,
+        pl_pokegra_none_nclr,
+    ],
     command: [
-        make_pl_pokegra_py,
-        '--nitrogfx', nitrogfx_exe,
-        '--narc', nitroarc_exe,
-        '--source-dir', '@CURRENT_SOURCE_DIR@',
-        '--private-dir', '@PRIVATE_DIR@',
-        '--output-dir', '@OUTDIR@',
+        nitroarc_exe,
+        '--create',
+        '--index',
+        '--files-from', pl_pokegra_order,
+        '--file', '@OUTPUT0@',
+        '@PRIVATE_DIR@',
     ],
 )
+naix_headers += pl_pokegra_narc[1]
 
 pl_otherpoke_narc = custom_target('pl_otherpoke.narc',
     output: [
