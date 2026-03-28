@@ -257,43 +257,34 @@ pl_poke_icon_narc = custom_target('pl_poke_icon.narc',
 )
 naix_headers += pl_poke_icon_narc[1]
 
-pokegra_ncgr = ncgr_gen.process(
-    pokegra_png,
-    extra_args: [
-        '-encodefronttoback',
-        '-scan',
-    ],
-    preserve_path_from: pokemon_data_root,
-)
-pokegra_nclr = nclr_gen.process(
-    pokegra_pal,
-    extra_args: [
-        '-bitdepth', '8',
-        '-nopad',
-        '-comp', '10'
-    ],
-    preserve_path_from: pokemon_data_root,
-)
-# Species 000 has special palettes; they are included here in their raw form,
-# rather than being derived from the decompiled PNGs.
-pokegra_none_nclr = copy_gen.process(
-    files('none'/'normal.NCLR', 'none'/'shiny.NCLR'),
-    preserve_path_from: pokemon_data_root,
-)
-pokegra_empty = touch_gen.process(
-    files('.shared/empty')
-)
-
 pl_pokegra_narc = custom_target('pl_pokegra.narc',
     output: [
         'pl_pokegra.narc',
         'pl_pokegra.naix',
     ],
     input: [
-        pokegra_ncgr,
-        pokegra_nclr,
-        pokegra_none_nclr,
-        pokegra_empty,
+        ncgr_gen.process(
+            pokegra_png,
+            extra_args: [
+                '-encodefronttoback',
+                '-scan',
+            ],
+            preserve_path_from: pokemon_data_root,
+        ),
+        nclr_gen.process(
+            pokegra_pal,
+            extra_args: [
+                '-bitdepth', '8',
+                '-nopad',
+                '-comp', '10'
+            ],
+            preserve_path_from: pokemon_data_root,
+        ),
+        copy_gen.process( # Species 000 has special palettes; they are included here in their raw form.
+            files('none'/'normal.NCLR', 'none'/'shiny.NCLR'),
+            preserve_path_from: pokemon_data_root,
+        ),
+        touch_gen.process(files('.shared/empty')),
     ],
     command: [
         nitroarc_exe,

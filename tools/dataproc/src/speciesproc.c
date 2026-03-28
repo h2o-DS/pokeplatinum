@@ -114,6 +114,7 @@ static header_template_t headers[] = {
 
 static order_template_t orders[] = {
     { .out_filename = "pl_pokegra.order"             },
+    { .out_filename = NULL,                          },
 };
 
 static const char *alt_forms_with_data[] = { // NOTE: also implicitly defines the ordering of these forms

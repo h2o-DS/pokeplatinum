@@ -77,7 +77,7 @@ struct header_template {
     char       *footer;
 };
 
-// Template-struct for an order file to be written. Specify the output filename
+// Template-struct for an order file to be written. Specify the output filename.
 typedef struct order_template order_template_t;
 struct order_template {
     const char *out_filename;
