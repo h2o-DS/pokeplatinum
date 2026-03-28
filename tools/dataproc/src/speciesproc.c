@@ -668,21 +668,23 @@ cleanup:
 }
 
 static void emit_pokegra(size_t i, const char *species, enum GenderRatio ratio) {
-    if (i < SPECIES_EGG)
-    {
-        if (ratio != GENDER_RATIO_MALE_ONLY && ratio != GENDER_RATIO_NO_GENDER) {
+    if (i < SPECIES_EGG) {
+        if (ratio == GENDER_RATIO_FEMALE_ONLY) {
             fprintf(*f_pl_pokegra, "%s/female_back.NCGR\n", species);
-        }
-        
-        if (ratio != GENDER_RATIO_FEMALE_ONLY) {
-            fprintf(*f_pl_pokegra, "%s/male_back.NCGR\n", species);
-        }
-
-        if (ratio != GENDER_RATIO_MALE_ONLY && ratio != GENDER_RATIO_NO_GENDER) {
+            fprintf(*f_pl_pokegra, "empty\n");
             fprintf(*f_pl_pokegra, "%s/female_front.NCGR\n", species);
+            fprintf(*f_pl_pokegra, "empty\n");
         }
-        
-        if (ratio != GENDER_RATIO_FEMALE_ONLY) {
+        else if (ratio == GENDER_RATIO_MALE_ONLY || ratio == GENDER_RATIO_NO_GENDER) {
+            fprintf(*f_pl_pokegra, "empty\n");
+            fprintf(*f_pl_pokegra, "%s/male_back.NCGR\n", species);
+            fprintf(*f_pl_pokegra, "empty\n");
+            fprintf(*f_pl_pokegra, "%s/male_front.NCGR\n", species);
+        }
+        else {
+            fprintf(*f_pl_pokegra, "%s/female_back.NCGR\n", species);
+            fprintf(*f_pl_pokegra, "%s/male_back.NCGR\n", species);
+            fprintf(*f_pl_pokegra, "%s/female_front.NCGR\n", species);
             fprintf(*f_pl_pokegra, "%s/male_front.NCGR\n", species);
         }
         
